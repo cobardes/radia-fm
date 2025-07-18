@@ -1,4 +1,4 @@
-import { loadPrompt } from "@/utils/load-prompt";
+import { generatePlaylistPrompt } from "@/prompts";
 import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
 import { NextRequest } from "next/server";
@@ -8,16 +8,17 @@ export async function POST(request: NextRequest) {
     const { name, artist } = await request.json();
 
     // Load and process the prompt template
-    const prompt = loadPrompt("generate-playlist", {
+    const prompt = generatePlaylistPrompt({
       name,
       artist,
     });
 
     const result = streamText({
-      model: google("gemini-2.5-flash", {
-        useSearchGrounding: false,
+      model: google("gemini-2.5-pro", {
+        useSearchGrounding: true,
       }),
       prompt,
+      temperature: 1,
     });
 
     return result.toDataStreamResponse();
