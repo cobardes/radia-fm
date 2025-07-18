@@ -1,9 +1,18 @@
 import { Song } from "@/types";
 import Image from "next/image";
 
-function SongSearchResult({ song }: { song: Song }) {
+function SongSearchResult({
+  song,
+  onSelect,
+}: {
+  song: Song;
+  onSelect: (song: Song) => void;
+}) {
   return (
-    <div className="flex flex-col gap-3 bg-gray-100 rounded-lg p-4 overflow-hidden cursor-pointer group">
+    <div
+      className="flex flex-col gap-3 bg-gray-100 rounded-lg p-4 overflow-hidden cursor-pointer group"
+      onClick={() => onSelect(song)}
+    >
       {song.thumbnail && (
         <div className="w-10 h-10 relative">
           <Image

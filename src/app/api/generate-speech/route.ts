@@ -3,12 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const { trackTitle, trackArtist } = await request.json();
+    const { text } = await request.json();
 
     // Generate speech from the prompt
-    const mp3Buffer = await generateSpeech(
-      `Welcome to Radius. Let's get started with ${trackTitle} by ${trackArtist}.`
-    );
+    const mp3Buffer = await generateSpeech(text);
 
     // Return the MP3 data as a binary response
     return new NextResponse(mp3Buffer, {

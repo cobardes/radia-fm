@@ -16,6 +16,7 @@ export async function searchYouTube(query: string): Promise<Song[]> {
     return songs.slice(0, 6).map((song) => {
       return {
         id: song.id ?? "",
+        videoId: song.id ?? "",
         title: song.title ?? "",
         artists: song.artists?.map((artist) => artist.name) ?? [],
         album: song.album?.name,
