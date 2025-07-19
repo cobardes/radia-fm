@@ -20,7 +20,7 @@ export async function generateSpeech(
   prompt: string,
   options: GenerateSpeechOptions = {}
 ): Promise<Buffer> {
-  const { temperature = 1, voiceName = "Iapetus" } = options;
+  const { temperature = 1, voiceName = "Aoede" } = options;
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
@@ -44,8 +44,10 @@ export async function generateSpeech(
       role: "user" as const,
       parts: [
         {
-          text: `Read aloud, in a brisk pace and conversational tone, in the style of an indie radio DJ, and aim for a lower tone:
+          text: `Read aloud, in a brisk pace and conversational tone, in the style of an indie radio DJ, and aim for a lower pitch. The tone should be friendly and engaging, but not too excited. Always use a noticeable British accent:
+
           ${prompt}
+
           (brief pause)`,
         },
       ],

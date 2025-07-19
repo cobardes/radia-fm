@@ -5,7 +5,43 @@ import { Song } from "@/types";
 import { useCallback, useEffect, useState } from "react";
 import { ScaleLoader } from "react-spinners";
 
+// Helper function to fade audio volume
+const fadeAudioVolume = (
+  audio: HTMLAudioElement,
+  fromVolume: number,
+  toVolume: number,
+  duration: number
+) => {
+  const fadeSteps = 50;
+  const stepDuration = duration / fadeSteps;
+  const volumeStep = (toVolume - fromVolume) / fadeSteps;
+
+  let currentStep = 0;
+  const fadeInterval = setInterval(() => {
+    currentStep++;
+    const newVolume = fromVolume + volumeStep * currentStep;
+
+    // Check if we've reached or exceeded the target volume
+    if (
+      (volumeStep > 0 && newVolume >= toVolume) ||
+      (volumeStep < 0 && newVolume <= toVolume) ||
+      currentStep >= fadeSteps
+    ) {
+      audio.volume = toVolume; // Set to exact target volume
+      clearInterval(fadeInterval);
+    } else {
+      audio.volume = newVolume;
+    }
+  }, stepDuration);
+};
+
 export default function Home() {
+  // Audio configuration constants
+  const INITIAL_SONG_VOLUME = 0.1; // 50%
+  const FINAL_SONG_VOLUME = 1.0; // 100%
+  const FADE_DURATION = 1000; // 1 second in milliseconds
+  const SONG_START_OFFSET = 3; // Start song 2 seconds before greeting ends
+
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Song[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,31 +62,67 @@ export default function Home() {
     setResults([]); // Clear search results
 
     try {
-      const response = await fetch(`/api/generate-speech`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: `Welcome back to Radius. We're getting started with your choice, uh, ${song.title} by ${song.artists[0]}. Good one. Let's go.`,
+      // Create audio objects
+      const greetingAudio = new Audio(
+        `/api/generate-greeting?trackTitle=${encodeURIComponent(
+          song.title
+        )}&trackArtist=${encodeURIComponent(song.artists[0])}`
+      );
+
+      greetingAudio.volume = 1.0;
+
+      const songAudio = new Audio(`/api/songs/playback/${song.videoId}`);
+
+      // Set initial song volume to 50%
+      songAudio.volume = INITIAL_SONG_VOLUME;
+
+      // Wait for both audios to be ready to play
+      await Promise.all([
+        new Promise((resolve) => {
+          greetingAudio.addEventListener("canplay", resolve, {
+            once: true,
+          });
         }),
+        new Promise((resolve) => {
+          songAudio.addEventListener("canplay", resolve, { once: true });
+        }),
+      ]);
+
+      // Play the greeting
+      greetingAudio.play();
+
+      // Calculate when to start the song (2 seconds before greeting ends)
+      const greetingDuration = greetingAudio.duration;
+      const songStartDelay = Math.max(
+        0,
+        (greetingDuration - SONG_START_OFFSET) * 1000
+      ); // Convert to milliseconds
+
+      // Start the song 2 seconds before greeting ends
+      setTimeout(() => {
+        songAudio.play();
+      }, songStartDelay);
+
+      // Fade song volume to 100% when greeting ends
+      setTimeout(() => {
+        fadeAudioVolume(
+          songAudio,
+          INITIAL_SONG_VOLUME,
+          FINAL_SONG_VOLUME,
+          FADE_DURATION
+        );
+      }, greetingDuration * 1000);
+
+      // Clean up object URLs when audios finish
+      greetingAudio.addEventListener("ended", () => {
+        URL.revokeObjectURL(greetingAudio.src);
       });
 
-      if (response.ok) {
-        const audioBlob = await response.blob();
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const audio = new Audio(audioUrl);
-
-        // Play the audio
-        audio.play();
-
-        // Clean up the object URL when the audio finishes playing
-        audio.addEventListener("ended", () => {
-          URL.revokeObjectURL(audioUrl);
-        });
-      }
+      songAudio.addEventListener("ended", () => {
+        URL.revokeObjectURL(songAudio.src);
+      });
     } catch (error) {
-      console.error("Error generating or playing speech:", error);
+      console.error("Error generating or playing audio:", error);
     } finally {
       setIsGeneratingSpeech(false);
     }
