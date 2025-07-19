@@ -1,3 +1,5 @@
+"use server";
+
 import { GoogleGenAI } from "@google/genai";
 import ffmpeg from "fluent-ffmpeg";
 import { promises as fs } from "fs";

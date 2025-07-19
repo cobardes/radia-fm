@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
         "Content-Type": "audio/mpeg",
         "Content-Length": mp3Buffer.length.toString(),
         "Content-Disposition": 'attachment; filename="speech.mp3"',
+        "Cache-Control": "public, max-age=86400, stale-while-revalidate=43200",
       },
     });
   } catch (error) {
