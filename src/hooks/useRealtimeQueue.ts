@@ -29,7 +29,6 @@ export function useRealtimeQueue(sessionId: string | null) {
           setQueue(sessionQueue.queue);
         } else {
           setQueue([]);
-          setError("Session queue not found");
         }
         setLoading(false);
       },

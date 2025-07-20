@@ -1,16 +1,22 @@
 import db from "@/server/clients/firestore";
 import {
   BaseErrorResponse,
-  SessionCreateRequest,
   SessionMetadata,
   SessionQueue,
+  Song,
 } from "@/types";
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-interface SessionStartSuccessResponse {
+export interface SessionStartRequest {
+  seedSong: Song;
+}
+
+export interface SessionStartSuccessResponse {
   sessionId: string;
 }
+
+export type SessionStartErrorResponse = BaseErrorResponse;
 
 // Union type for all possible responses from this endpoint
 export type SessionStartResponse =
@@ -21,7 +27,7 @@ export async function POST(
   request: NextRequest
 ): Promise<NextResponse<SessionStartResponse>> {
   try {
-    const body: SessionCreateRequest = await request.json();
+    const body: SessionStartRequest = await request.json();
 
     if (!body.seedSong || !body.seedSong.id) {
       return NextResponse.json(
@@ -32,9 +38,27 @@ export async function POST(
 
     const sessionId = randomUUID();
 
+    const speechUrl = `/api/generate-greeting?trackTitle=${body.seedSong.title}&trackArtist=${body.seedSong.artists[0]}`;
+    const songUrl = `/api/songs/playback/${body.seedSong.videoId}`;
+
     const sessionQueue: SessionQueue = {
       sessionId,
-      queue: [],
+      queue: [
+        {
+          type: "segment",
+          id: "greeting" + Math.random().toString(36).substring(2, 15),
+          title: "DJ Greeting",
+          audioUrl: speechUrl,
+        },
+        {
+          type: "song",
+          id: body.seedSong.id,
+          title: body.seedSong.title,
+          artists: body.seedSong.artists,
+          thumbnail: body.seedSong.thumbnail,
+          audioUrl: songUrl,
+        },
+      ],
       lastUpdated: new Date().toISOString(),
     };
 

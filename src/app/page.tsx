@@ -2,8 +2,8 @@
 
 import RadioPlayer from "@/components/RadioPlayer";
 import SongSearchResult from "@/components/SongSearchResult";
+import { useStartSessionMutation } from "@/hooks/mutations";
 import { useRealtimeQueue } from "@/hooks/useRealtimeQueue";
-import { useCreateSession } from "@/hooks/useSessionMutation";
 import { Song } from "@/types";
 import { useCallback, useEffect, useState } from "react";
 import ScaleLoader from "react-spinners/ScaleLoader";
@@ -16,7 +16,7 @@ export default function Home() {
   // Session-based state
   const [sessionId, setSessionId] = useState<string | null>(null);
 
-  const createSessionMutation = useCreateSession();
+  const startSessionMutation = useStartSessionMutation();
 
   // Real-time session queue data
   const {
@@ -39,7 +39,7 @@ export default function Home() {
     async (song: Song) => {
       setResults([]); // Clear search results
 
-      createSessionMutation.mutate(
+      startSessionMutation.mutate(
         { seedSong: song },
         {
           onSuccess: (sessionData) => {
@@ -51,10 +51,10 @@ export default function Home() {
         }
       );
     },
-    [createSessionMutation]
+    [startSessionMutation]
   );
 
-  const isCreatingSession = createSessionMutation.isPending;
+  const isCreatingSession = startSessionMutation.isPending;
 
   return (
     <div className="font-sans p-8">

@@ -55,13 +55,3 @@ export interface RadioSession {
   currentIndex: number;
   queue: QueueItem[];
 }
-
-export interface SessionCreateRequest {
-  seedSong: Song;
-}
-
-export interface SessionResponse {
-  sessionId: string;
-  queue: QueueItem[];
-  session?: RadioSession;
-}
