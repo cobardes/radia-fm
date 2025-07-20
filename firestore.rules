@@ -1,0 +1,15 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Session metadata - no client access (server-side only)
+    match /sessions/{sessionId} {
+      allow read, write: if false;
+    }
+    
+    // Session queues - read-only for everyone, no writes
+    match /sessionQueues/{sessionId} {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+} 

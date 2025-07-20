@@ -1,14 +1,21 @@
-import { sessionService } from "@/server/services/session";
-import { SessionCreateRequest, SessionResponse } from "@/types";
+import db from "@/server/clients/firestore";
+import {
+  BaseErrorResponse,
+  SessionCreateRequest,
+  SessionMetadata,
+  SessionQueue,
+} from "@/types";
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-// Error response types for this endpoint
-export interface SessionErrorResponse {
-  error: string;
+interface SessionStartSuccessResponse {
+  sessionId: string;
 }
 
 // Union type for all possible responses from this endpoint
-export type SessionStartResponse = SessionResponse | SessionErrorResponse;
+export type SessionStartResponse =
+  | SessionStartSuccessResponse
+  | BaseErrorResponse;
 
 export async function POST(
   request: NextRequest
@@ -18,23 +25,37 @@ export async function POST(
 
     if (!body.seedSong || !body.seedSong.id) {
       return NextResponse.json(
-        { error: "Valid seedSong is required" } as SessionErrorResponse,
+        { error: "Valid seedSong is required" } as BaseErrorResponse,
         { status: 400 }
       );
     }
 
-    const session = await sessionService.createSession(body.seedSong);
+    const sessionId = randomUUID();
 
-    const response: SessionResponse = {
-      sessionId: session.id,
-      queue: session.queue,
+    const sessionQueue: SessionQueue = {
+      sessionId,
+      queue: [],
+      lastUpdated: new Date().toISOString(),
     };
 
-    return NextResponse.json(response);
+    const sessionMetadata: SessionMetadata = {
+      id: sessionId,
+      createdAt: new Date().toISOString(),
+      lastActivity: new Date().toISOString(),
+      seedSong: body.seedSong,
+      currentIndex: -1,
+    };
+
+    db.collection("sessions").doc(sessionId).set(sessionMetadata);
+    db.collection("sessionQueues").doc(sessionId).set(sessionQueue);
+
+    return NextResponse.json({
+      sessionId,
+    });
   } catch (error) {
     console.error("Error creating session:", error);
     return NextResponse.json(
-      { error: "Failed to create session" } as SessionErrorResponse,
+      { error: "Failed to create session" } as BaseErrorResponse,
       { status: 500 }
     );
   }

@@ -1,12 +1,23 @@
-import { QueueItem, RadioSession, Song } from "@/types";
+import {
+  QueueItem,
+  RadioSession,
+  SessionMetadata,
+  SessionQueue,
+  Song,
+} from "@/types";
 import { randomUUID } from "crypto";
-import redis from "../clients/redis";
+import db from "../clients/firestore";
 
-const SESSION_TTL = 14400; // 4 hours in seconds
+const SESSIONS_COLLECTION = "sessions";
+const SESSION_QUEUES_COLLECTION = "sessionQueues";
 
 export class SessionService {
-  private getSessionKey(sessionId: string): string {
-    return `session:${sessionId}`;
+  private getSessionRef(sessionId: string) {
+    return db.collection(SESSIONS_COLLECTION).doc(sessionId);
+  }
+
+  private getSessionQueueRef(sessionId: string) {
+    return db.collection(SESSION_QUEUES_COLLECTION).doc(sessionId);
   }
 
   async createSession(seedSong: Song): Promise<RadioSession> {
@@ -34,75 +45,145 @@ export class SessionService {
       },
     ];
 
-    const session: RadioSession = {
+    // Create session metadata
+    const sessionMetadata: SessionMetadata = {
       id: sessionId,
       createdAt: now,
       lastActivity: now,
       seedSong,
       currentIndex: -1,
-      queue: initialQueue,
     };
 
-    await redis.setex(
-      this.getSessionKey(sessionId),
-      SESSION_TTL,
-      JSON.stringify(session)
-    );
+    // Create session queue
+    const sessionQueue: SessionQueue = {
+      sessionId,
+      queue: initialQueue,
+      lastUpdated: now,
+    };
+
+    // Write to both collections atomically
+    await db.runTransaction(async (transaction) => {
+      transaction.set(this.getSessionRef(sessionId), sessionMetadata);
+      transaction.set(this.getSessionQueueRef(sessionId), sessionQueue);
+    });
+
+    // Return combined session for backward compatibility
+    const session: RadioSession = {
+      ...sessionMetadata,
+      queue: initialQueue,
+    };
 
     return session;
   }
 
   async getSession(sessionId: string): Promise<RadioSession | null> {
-    const session = (await redis.get(
-      this.getSessionKey(sessionId)
-    )) as RadioSession | null;
+    try {
+      const [sessionDoc, queueDoc] = await Promise.all([
+        this.getSessionRef(sessionId).get(),
+        this.getSessionQueueRef(sessionId).get(),
+      ]);
 
-    if (!session) {
+      if (!sessionDoc.exists || !queueDoc.exists) {
+        return null;
+      }
+
+      const sessionMetadata = sessionDoc.data() as SessionMetadata;
+      const sessionQueue = queueDoc.data() as SessionQueue;
+
+      // Update last activity
+      const now = new Date().toISOString();
+      await this.getSessionRef(sessionId).update({
+        lastActivity: now,
+      });
+
+      // Return combined session
+      return {
+        ...sessionMetadata,
+        lastActivity: now,
+        queue: sessionQueue.queue,
+      };
+    } catch (error) {
+      console.error("Error getting session:", error);
       return null;
     }
-
-    // Update last activity
-    session.lastActivity = new Date().toISOString();
-
-    await redis.setex(
-      this.getSessionKey(sessionId),
-      SESSION_TTL,
-      JSON.stringify(session)
-    );
-
-    return session;
   }
 
   async updateSession(
     sessionId: string,
     updates: Partial<RadioSession>
   ): Promise<RadioSession | null> {
-    const existing = await this.getSession(sessionId);
+    try {
+      const now = new Date().toISOString();
 
-    if (!existing) {
-      return null;
+      await db.runTransaction(async (transaction) => {
+        const [sessionDoc, queueDoc] = await Promise.all([
+          transaction.get(this.getSessionRef(sessionId)),
+          transaction.get(this.getSessionQueueRef(sessionId)),
+        ]);
+
+        if (!sessionDoc.exists || !queueDoc.exists) {
+          throw new Error("Session not found");
+        }
+
+        // Separate queue updates from metadata updates
+        const { queue, ...metadataUpdates } = updates;
+
+        // Update metadata if there are metadata changes
+        if (Object.keys(metadataUpdates).length > 0) {
+          transaction.update(this.getSessionRef(sessionId), {
+            ...metadataUpdates,
+            lastActivity: now,
+          });
+        }
+
+        // Update queue if provided
+        if (queue) {
+          transaction.update(this.getSessionQueueRef(sessionId), {
+            queue,
+            lastUpdated: now,
+          });
+        }
+      });
+
+      // Return the updated session
+      return await this.getSession(sessionId);
+    } catch (error) {
+      if (error instanceof Error && error.message === "Session not found") {
+        return null;
+      }
+      throw error;
     }
-
-    const updated: RadioSession = {
-      ...existing,
-      ...updates,
-      lastActivity: new Date().toISOString(),
-    };
-
-    await redis.setex(
-      this.getSessionKey(sessionId),
-      SESSION_TTL,
-      JSON.stringify(updated)
-    );
-
-    return updated;
   }
 
   async updateQueue(
     sessionId: string,
     queue: QueueItem[]
   ): Promise<RadioSession | null> {
-    return this.updateSession(sessionId, { queue });
+    try {
+      const now = new Date().toISOString();
+
+      await db.runTransaction(async (transaction) => {
+        const queueDoc = await transaction.get(
+          this.getSessionQueueRef(sessionId)
+        );
+
+        if (!queueDoc.exists) {
+          throw new Error("Session not found");
+        }
+
+        transaction.update(this.getSessionQueueRef(sessionId), {
+          queue,
+          lastUpdated: now,
+        });
+      });
+
+      return await this.getSession(sessionId);
+    } catch (error) {
+      if (error instanceof Error && error.message === "Session not found") {
+        return null;
+      }
+      throw error;
+    }
   }
 
   async updateCurrentIndex(
@@ -113,8 +194,32 @@ export class SessionService {
   }
 
   async deleteSession(sessionId: string): Promise<boolean> {
-    const result = await redis.del(this.getSessionKey(sessionId));
-    return result === 1;
+    try {
+      await db.runTransaction(async (transaction) => {
+        transaction.delete(this.getSessionRef(sessionId));
+        transaction.delete(this.getSessionQueueRef(sessionId));
+      });
+      return true;
+    } catch (error) {
+      console.error("Error deleting session:", error);
+      return false;
+    }
+  }
+
+  // New method to get only queue data (for client-side access)
+  async getSessionQueue(sessionId: string): Promise<SessionQueue | null> {
+    try {
+      const queueDoc = await this.getSessionQueueRef(sessionId).get();
+
+      if (!queueDoc.exists) {
+        return null;
+      }
+
+      return queueDoc.data() as SessionQueue;
+    } catch (error) {
+      console.error("Error getting session queue:", error);
+      return null;
+    }
   }
 }
 

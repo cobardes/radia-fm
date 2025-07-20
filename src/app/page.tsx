@@ -2,8 +2,9 @@
 
 import RadioPlayer from "@/components/RadioPlayer";
 import SongSearchResult from "@/components/SongSearchResult";
+import { useRealtimeQueue } from "@/hooks/useRealtimeQueue";
 import { useCreateSession } from "@/hooks/useSessionMutation";
-import { QueueItem, Song } from "@/types";
+import { Song } from "@/types";
 import { useCallback, useEffect, useState } from "react";
 import ScaleLoader from "react-spinners/ScaleLoader";
 
@@ -14,9 +15,15 @@ export default function Home() {
 
   // Session-based state
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [queue, setQueue] = useState<QueueItem[]>([]);
 
   const createSessionMutation = useCreateSession();
+
+  // Real-time session queue data
+  const {
+    queue,
+    loading: queueLoading,
+    error: queueError,
+  } = useRealtimeQueue(sessionId);
 
   useEffect(() => {
     if (!query) return;
@@ -37,7 +44,6 @@ export default function Home() {
         {
           onSuccess: (sessionData) => {
             setSessionId(sessionData.sessionId);
-            setQueue(sessionData.queue);
           },
           onError: (error) => {
             console.error("Failed to create session:", error);
@@ -69,11 +75,22 @@ export default function Home() {
             }}
           />
         </div>
-        {(isSearching || isCreatingSession) && (
+        {(isSearching || isCreatingSession || queueLoading) && (
           <div className="flex justify-center items-center gap-2">
             <ScaleLoader color="#000" />
-            <div>{isSearching ? "Searching..." : "Creating session..."}</div>
+            <div>
+              {isSearching
+                ? "Searching..."
+                : isCreatingSession
+                ? "Creating session..."
+                : queueLoading
+                ? "Loading queue..."
+                : ""}
+            </div>
           </div>
+        )}
+        {queueError && (
+          <div className="text-red-500 text-center">Error: {queueError}</div>
         )}
         <div className="grid grid-cols-2 gap-3">
           {results.map((result) => (
@@ -89,6 +106,7 @@ export default function Home() {
             Session: {sessionId.slice(0, 8)}...
           </div>
         )}
+        {/* Use queue from real-time updates */}
         <RadioPlayer queue={queue} />
       </div>
     </div>
