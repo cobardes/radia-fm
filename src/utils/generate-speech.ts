@@ -22,7 +22,7 @@ export async function generateSpeech(
   prompt: string,
   options: GenerateSpeechOptions = {}
 ): Promise<Buffer> {
-  const { temperature = 1, voiceName = "Aoede" } = options;
+  const { temperature = 1, voiceName = "Charon" } = options;
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",

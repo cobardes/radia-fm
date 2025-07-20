@@ -9,12 +9,21 @@ import Spinner from "./Spinner";
 const INITIAL_VOLUME = 0.075;
 const TARGET_VOLUME = 0.5;
 const FADE_DURATION = 1000;
+const SONG_ENDING_OFFSET_SECONDS = 1;
 
 interface RadioPlayerSongItemProps {
   item: SongItem;
   index: number;
   onLoad: (itemId: string) => void;
 }
+
+const isPlaying = (audio: HTMLAudioElement) =>
+  !!(
+    audio.currentTime > 0 &&
+    !audio.paused &&
+    !audio.ended &&
+    audio.readyState > 2
+  );
 
 function RadioPlayerSongItem({
   item,
@@ -25,6 +34,7 @@ function RadioPlayerSongItem({
     useContext(RadioPlayerContext);
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const finished = useRef(false);
 
   const isActive = currentItem?.id === item.id;
   const isLoaded = loadedItems.has(item.id);
@@ -34,12 +44,24 @@ function RadioPlayerSongItem({
     onLoad(item.id);
   };
 
-  const handleAudioEnded = () => {
-    playNext();
+  const handleAudioProgress = (
+    event: React.SyntheticEvent<HTMLAudioElement>
+  ) => {
+    if (finished.current) return;
+
+    const audio = event.target as HTMLAudioElement;
+
+    if (audio.currentTime > audio.duration - SONG_ENDING_OFFSET_SECONDS) {
+      finished.current = true;
+      playNext();
+    }
   };
 
   useEffect(() => {
-    if (isActive && audioRef.current) {
+    if (isActive && audioRef.current && !isPlaying(audioRef.current)) {
+      // Reset finished flag when starting a new song
+      finished.current = false;
+
       // Check if the previous queue item is a song
       const previousItem = currentIndex > 0 ? queue[currentIndex - 1] : null;
       const previousItemIsSong = previousItem?.type === "song";
@@ -67,7 +89,9 @@ function RadioPlayerSongItem({
   }, [isActive, currentIndex, queue]);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div
+      className={`flex flex-col gap-2 ${currentIndex > index ? "hidden" : ""}`}
+    >
       <div className="flex items-center gap-2">
         <Image
           src={item.thumbnail ?? ""}
@@ -94,8 +118,8 @@ function RadioPlayerSongItem({
           src={item.audioUrl}
           preload="auto"
           onCanPlay={handleAudioLoaded}
+          onTimeUpdate={handleAudioProgress}
           autoPlay={false}
-          onEnded={handleAudioEnded}
           controls={true}
         />
       )}

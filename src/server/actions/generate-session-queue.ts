@@ -10,6 +10,7 @@ import {
 } from "@/types";
 import { formatPlaylistAsString } from "@/utils";
 import { google } from "@ai-sdk/google";
+import { openai } from "@ai-sdk/openai";
 import { generateObject, generateText } from "ai";
 import { randomUUID } from "crypto";
 import { z } from "zod";
@@ -47,7 +48,7 @@ export async function generateSessionQueue(sessionId: string) {
   console.log(playlistDraft.text);
 
   const structuredPlaylistDraft = await generateObject({
-    model: google("gemini-2.5-flash"),
+    model: openai("gpt-4.1-nano"),
     prompt: `Structure the given playlist. Retain the full text of the reasons below each song.
 
     Playlist:
@@ -112,26 +113,30 @@ export async function generateSessionQueue(sessionId: string) {
   console.log(`[SID:${sessionId.slice(0, 8)}] Generating script...`);
 
   const scriptDraft = await generateObject({
-    model: google("gemini-2.5-pro"),
+    model: openai("gpt-4.1"),
     prompt: generateScriptPrompt({
       playlist: formatPlaylistAsString(newPlaylist, true),
       language: "English",
     }),
     schema: z.object({
-      script: z.array(
-        z.discriminatedUnion("type", [
-          z.object({
-            type: z.literal("song").describe("Song item"),
-            title: z.string().describe("The title of the song"),
-            artist: z.string().describe("The artist of the song"),
-            songId: z.string().describe("The id of the song"),
-          }),
-          z.object({
-            type: z.literal("segment").describe("Talk segment item"),
-            text: z.string().describe("The text of the talk segment"),
-          }),
-        ])
-      ),
+      script: z
+        .array(
+          z.discriminatedUnion("type", [
+            z.object({
+              type: z.literal("song").describe("Song item"),
+              title: z.string().describe("The title of the song"),
+              artist: z.string().describe("The artist of the song"),
+              songId: z.string().describe("The id of the song"),
+            }),
+            z.object({
+              type: z.literal("segment").describe("Talk segment item"),
+              text: z.string().describe("The text of the talk segment"),
+            }),
+          ])
+        )
+        .describe(
+          "The script of the session. Item type can be either 'song' or 'segment'"
+        ),
     }),
   });
 
