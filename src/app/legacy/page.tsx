@@ -26,13 +26,33 @@ export default function Home() {
       .finally(() => setIsSearching(false));
   }, [query]);
 
+  // Load session data when sessionId changes
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const loadSession = async () => {
+      try {
+        const response = await fetch(`/api/sessions/${sessionId}`);
+        const data = await response.json();
+
+        if (data.session) {
+          setQueue(data.session.queue);
+        }
+      } catch (error) {
+        console.error("Failed to load session:", error);
+      }
+    };
+
+    loadSession();
+  }, [sessionId]);
+
   const handleSongSelection = useCallback(async (song: Song) => {
     setResults([]); // Clear search results
     setIsCreatingSession(true);
 
     try {
-      // Create session with seed song - backend will generate initial queue
-      const sessionResponse = await fetch("/api/sessions/start", {
+      // Create session with seed song
+      const sessionResponse = await fetch("/api/sessions/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,10 +61,40 @@ export default function Home() {
       });
 
       const sessionData = await sessionResponse.json();
+      const newSessionId = sessionData.sessionId;
+      setSessionId(newSessionId);
 
-      // Use the queue returned from the backend
-      setSessionId(sessionData.sessionId);
-      setQueue(sessionData.queue);
+      // Create initial queue items
+      const speechUrl = `/api/generate-greeting?trackTitle=${song.title}&trackArtist=${song.artists[0]}`;
+      const songUrl = `/api/songs/playback/${song.videoId}`;
+
+      const initialQueue: QueueItem[] = [
+        {
+          type: "segment",
+          id: "greeting" + Math.random().toString(36).substring(2, 15),
+          title: "DJ Greeting",
+          audioUrl: speechUrl,
+        },
+        {
+          type: "song",
+          id: song.id,
+          title: song.title,
+          artists: song.artists,
+          thumbnail: song.thumbnail,
+          audioUrl: songUrl,
+        },
+      ];
+
+      // Update session with initial queue
+      await fetch(`/api/sessions/${newSessionId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ queue: initialQueue }),
+      });
+
+      setQueue(initialQueue);
     } catch (error) {
       console.error("Failed to create session:", error);
     } finally {
