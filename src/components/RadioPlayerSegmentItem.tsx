@@ -1,6 +1,7 @@
 import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
 import { SegmentItem } from "@/types";
 import { useContext, useEffect, useRef } from "react";
+import Spinner from "./Spinner";
 
 export const SEGMENT_ENDING_OFFSET_SECONDS = 3;
 
@@ -16,6 +17,7 @@ function RadioPlayerSegmentItem({ item, onLoad }: RadioPlayerSegmentItemProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const isActive = currentItem?.id === item.id;
+  const isLoaded = loadedItems.has(item.id);
 
   const handleAudioLoaded = () => {
     onLoad(item.id);
@@ -41,10 +43,11 @@ function RadioPlayerSegmentItem({ item, onLoad }: RadioPlayerSegmentItemProps) {
   }, [isActive]);
 
   return (
-    <div>
-      {currentItem?.id === item.id && <div className="font-bold">Current</div>}
-      <div className="text-sm font-medium">{item.title}</div>
-      <div>can play? {loadedItems.has(item.id) ? "yes" : "no"}</div>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <div className="text-sm font-medium">{item.title}</div>
+        {!isLoaded && <Spinner color="#000" size={20} />}
+      </div>
       <audio
         ref={audioRef}
         src={item.audioUrl}

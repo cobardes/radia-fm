@@ -2,6 +2,7 @@
 
 import RadioPlayer from "@/components/RadioPlayer";
 import SongSearchResult from "@/components/SongSearchResult";
+import { useCreateSession } from "@/hooks/useSessionMutation";
 import { QueueItem, Song } from "@/types";
 import { useCallback, useEffect, useState } from "react";
 import ScaleLoader from "react-spinners/ScaleLoader";
@@ -14,7 +15,8 @@ export default function Home() {
   // Session-based state
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [queue, setQueue] = useState<QueueItem[]>([]);
-  const [isCreatingSession, setIsCreatingSession] = useState(false);
+
+  const createSessionMutation = useCreateSession();
 
   useEffect(() => {
     if (!query) return;
@@ -26,31 +28,27 @@ export default function Home() {
       .finally(() => setIsSearching(false));
   }, [query]);
 
-  const handleSongSelection = useCallback(async (song: Song) => {
-    setResults([]); // Clear search results
-    setIsCreatingSession(true);
+  const handleSongSelection = useCallback(
+    async (song: Song) => {
+      setResults([]); // Clear search results
 
-    try {
-      // Create session with seed song - backend will generate initial queue
-      const sessionResponse = await fetch("/api/sessions/start", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ seedSong: song }),
-      });
+      createSessionMutation.mutate(
+        { seedSong: song },
+        {
+          onSuccess: (sessionData) => {
+            setSessionId(sessionData.sessionId);
+            setQueue(sessionData.queue);
+          },
+          onError: (error) => {
+            console.error("Failed to create session:", error);
+          },
+        }
+      );
+    },
+    [createSessionMutation]
+  );
 
-      const sessionData = await sessionResponse.json();
-
-      // Use the queue returned from the backend
-      setSessionId(sessionData.sessionId);
-      setQueue(sessionData.queue);
-    } catch (error) {
-      console.error("Failed to create session:", error);
-    } finally {
-      setIsCreatingSession(false);
-    }
-  }, []);
+  const isCreatingSession = createSessionMutation.isPending;
 
   return (
     <div className="font-sans p-8">

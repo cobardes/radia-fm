@@ -4,6 +4,7 @@ import { fadeVolume } from "@/utils/fade-volume";
 import Image from "next/image";
 import { useContext, useEffect, useRef } from "react";
 import { SEGMENT_ENDING_OFFSET_SECONDS } from "./RadioPlayerSegmentItem";
+import Spinner from "./Spinner";
 
 const INITIAL_VOLUME = 0.1;
 const TARGET_VOLUME = 0.5;
@@ -20,6 +21,7 @@ function RadioPlayerSongItem({ item, onLoad }: RadioPlayerSongItemProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const isActive = currentItem?.id === item.id;
+  const isLoaded = loadedItems.has(item.id);
 
   const handleAudioLoaded = () => {
     onLoad(item.id);
@@ -47,9 +49,8 @@ function RadioPlayerSongItem({ item, onLoad }: RadioPlayerSongItemProps) {
   }, [isActive]);
 
   return (
-    <div>
-      {currentItem?.id === item.id && <div className="font-bold">Current</div>}
-      <div className="flex items-center gap-2 bg-gray-100">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
         <Image
           src={item.thumbnail ?? ""}
           alt={item.title}
@@ -58,11 +59,17 @@ function RadioPlayerSongItem({ item, onLoad }: RadioPlayerSongItemProps) {
           className="rounded-md bg-gray-200"
         />
         <div className="flex flex-col">
-          <div className="text-sm font-medium">{item.title}</div>
+          <div
+            className={`text-sm font-semibold ${
+              isActive ? "text-blue-600" : ""
+            }`}
+          >
+            {item.title}
+          </div>
           <div className="text-sm text-gray-500">{item.artists.join(", ")}</div>
         </div>
+        {!isLoaded && <Spinner color="#000" size={20} />}
       </div>
-      <div>can play? {loadedItems.has(item.id) ? "yes" : "no"}</div>
       <audio
         ref={audioRef}
         src={item.audioUrl}

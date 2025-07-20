@@ -66,28 +66,30 @@ function RadioPlayer({
         playNext,
       }}
     >
-      {queue.map((item) => {
-        switch (item.type) {
-          case "song":
-            return (
-              <RadioPlayerSongItem
-                key={item.id}
-                item={item}
-                onLoad={handleItemLoad}
-              />
-            );
-          case "segment":
-            return (
-              <RadioPlayerSegmentItem
-                key={item.id}
-                item={item}
-                onLoad={handleItemLoad}
-              />
-            );
-          default:
-            return null;
-        }
-      })}
+      <div className="flex flex-col gap-8">
+        {queue.map((item) => {
+          switch (item.type) {
+            case "song":
+              return (
+                <RadioPlayerSongItem
+                  key={item.id}
+                  item={item}
+                  onLoad={handleItemLoad}
+                />
+              );
+            case "segment":
+              return (
+                <RadioPlayerSegmentItem
+                  key={item.id}
+                  item={item}
+                  onLoad={handleItemLoad}
+                />
+              );
+            default:
+              return null;
+          }
+        })}
+      </div>
     </RadioPlayerContext.Provider>
   );
 }
