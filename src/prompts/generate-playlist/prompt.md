@@ -1,7 +1,6 @@
 You are building an interactive playlist. These are the songs that have played so far, and why they were selected:
 
-1.  **"{name}" by {artist}**
-    The user selected this song.
+{previousPlaylist}
 
 ## Context
 

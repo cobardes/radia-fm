@@ -1,6 +1,6 @@
 import { createPrompt } from "@/utils";
 
-type Variables = "name" | "artist";
+type Variables = "previousPlaylist";
 
 export const generatePlaylistPrompt =
   createPrompt<Variables>("generate-playlist");

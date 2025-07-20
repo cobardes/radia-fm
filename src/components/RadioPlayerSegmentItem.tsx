@@ -10,7 +10,8 @@ interface RadioPlayerSegmentItemProps {
 }
 
 function RadioPlayerSegmentItem({ item, onLoad }: RadioPlayerSegmentItemProps) {
-  const { currentItem, playNext } = useContext(RadioPlayerContext);
+  const { currentItem, playNext, loadedItems } = useContext(RadioPlayerContext);
+  const finished = useRef(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -23,9 +24,12 @@ function RadioPlayerSegmentItem({ item, onLoad }: RadioPlayerSegmentItemProps) {
   const handleAudioProgress = (
     event: React.SyntheticEvent<HTMLAudioElement>
   ) => {
+    if (finished.current) return;
+
     const audio = event.target as HTMLAudioElement;
 
     if (audio.currentTime > audio.duration - SEGMENT_ENDING_OFFSET_SECONDS) {
+      finished.current = true;
       playNext();
     }
   };
@@ -38,7 +42,9 @@ function RadioPlayerSegmentItem({ item, onLoad }: RadioPlayerSegmentItemProps) {
 
   return (
     <div>
+      {currentItem?.id === item.id && <div className="font-bold">Current</div>}
       <div className="text-sm font-medium">{item.title}</div>
+      <div>can play? {loadedItems.has(item.id) ? "yes" : "no"}</div>
       <audio
         ref={audioRef}
         src={item.audioUrl}
@@ -46,6 +52,7 @@ function RadioPlayerSegmentItem({ item, onLoad }: RadioPlayerSegmentItemProps) {
         onCanPlay={handleAudioLoaded}
         onTimeUpdate={handleAudioProgress}
         autoPlay={false}
+        controls={true}
       />
     </div>
   );

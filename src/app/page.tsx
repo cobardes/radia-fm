@@ -10,7 +10,6 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Song[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const [queue, setQueue] = useState<QueueItem[]>([]);
 
@@ -23,10 +22,6 @@ export default function Home() {
       .then((data) => setResults(data.songs))
       .finally(() => setIsSearching(false));
   }, [query]);
-
-  const handlePlaybackReady = useCallback(() => {
-    setIsLoading(false);
-  }, []);
 
   const handleSongSelection = useCallback(
     async (song: Song) => {
@@ -52,8 +47,6 @@ export default function Home() {
           audioUrl: songUrl,
         },
       ]);
-
-      setIsLoading(true);
     },
     [queue]
   );
@@ -72,16 +65,17 @@ export default function Home() {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 setQuery(e.currentTarget.value);
+                e.currentTarget.value = "";
               }
             }}
           />
         </div>
-        {(isSearching || isLoading) && (
+        {isSearching && (
           <div className="flex justify-center items-center">
             <ScaleLoader color="#000" />
+            <div>Searching...</div>
           </div>
         )}
-        <RadioPlayer queue={queue} onPlaybackReady={handlePlaybackReady} />
         <div className="grid grid-cols-2 gap-3">
           {results.map((result) => (
             <SongSearchResult
@@ -91,6 +85,7 @@ export default function Home() {
             />
           ))}
         </div>
+        <RadioPlayer queue={queue} />
       </div>
     </div>
   );

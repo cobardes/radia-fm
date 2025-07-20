@@ -13,7 +13,7 @@ export async function searchYouTube(query: string): Promise<Song[]> {
     const songs =
       search.songs?.contents.filterType(YTNodes.MusicResponsiveListItem) ?? [];
 
-    return songs.slice(0, 6).map((song) => {
+    return songs.slice(0, 12).map((song) => {
       return {
         id: song.id ?? "",
         videoId: song.id ?? "",

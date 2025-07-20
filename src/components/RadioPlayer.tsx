@@ -6,10 +6,13 @@ import RadioPlayerSongItem from "./RadioPlayerSongItem";
 
 interface RadioPlayerProps {
   queue: QueueItem[];
-  onPlaybackReady: () => void;
+  onPlaybackReady?: () => void;
 }
 
-function RadioPlayer({ queue, onPlaybackReady }: RadioPlayerProps) {
+function RadioPlayer({
+  queue,
+  onPlaybackReady = () => null,
+}: RadioPlayerProps) {
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const [loadedItems, setLoadedItems] = useState<Set<string>>(new Set());
   const currentItem = queue[currentIndex];
@@ -29,6 +32,8 @@ function RadioPlayer({ queue, onPlaybackReady }: RadioPlayerProps) {
   }, []);
 
   const playNext = useCallback(() => {
+    console.log("playNext called");
+
     if (queue.length <= currentIndex + 1) return;
     setCurrentIndex((prev) => prev + 1);
   }, [queue, currentIndex]);
