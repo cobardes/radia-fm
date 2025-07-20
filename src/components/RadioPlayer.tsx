@@ -67,13 +67,14 @@ function RadioPlayer({
       }}
     >
       <div className="flex flex-col gap-8">
-        {queue.map((item) => {
+        {queue.map((item, index) => {
           switch (item.type) {
             case "song":
               return (
                 <RadioPlayerSongItem
                   key={item.id}
                   item={item}
+                  index={index}
                   onLoad={handleItemLoad}
                 />
               );
@@ -82,6 +83,7 @@ function RadioPlayer({
                 <RadioPlayerSegmentItem
                   key={item.id}
                   item={item}
+                  index={index}
                   onLoad={handleItemLoad}
                 />
               );

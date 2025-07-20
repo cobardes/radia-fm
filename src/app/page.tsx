@@ -1,10 +1,9 @@
 "use client";
 
-import RadioPlayer from "@/components/RadioPlayer";
 import SongSearchResult from "@/components/SongSearchResult";
 import { useStartSessionMutation } from "@/hooks/mutations";
-import { useRealtimeQueue } from "@/hooks/useRealtimeQueue";
 import { Song } from "@/types";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import ScaleLoader from "react-spinners/ScaleLoader";
 
@@ -13,17 +12,8 @@ export default function Home() {
   const [results, setResults] = useState<Song[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Session-based state
-  const [sessionId, setSessionId] = useState<string | null>(null);
-
+  const router = useRouter();
   const startSessionMutation = useStartSessionMutation();
-
-  // Real-time session queue data
-  const {
-    queue,
-    loading: queueLoading,
-    error: queueError,
-  } = useRealtimeQueue(sessionId);
 
   useEffect(() => {
     if (!query) return;
@@ -43,7 +33,8 @@ export default function Home() {
         { seedSong: song },
         {
           onSuccess: (sessionData) => {
-            setSessionId(sessionData.sessionId);
+            // Redirect to the session page
+            router.push(`/session/${sessionData.sessionId}`);
           },
           onError: (error) => {
             console.error("Failed to create session:", error);
@@ -51,7 +42,7 @@ export default function Home() {
         }
       );
     },
-    [startSessionMutation]
+    [startSessionMutation, router]
   );
 
   const isCreatingSession = startSessionMutation.isPending;
@@ -75,7 +66,9 @@ export default function Home() {
             }}
           />
         </div>
-        {(isSearching || isCreatingSession || queueLoading) && (
+
+        {/* Loading states */}
+        {(isSearching || isCreatingSession) && (
           <div className="flex justify-center items-center gap-2">
             <ScaleLoader color="#000" />
             <div>
@@ -83,15 +76,12 @@ export default function Home() {
                 ? "Searching..."
                 : isCreatingSession
                 ? "Creating session..."
-                : queueLoading
-                ? "Loading queue..."
                 : ""}
             </div>
           </div>
         )}
-        {queueError && (
-          <div className="text-red-500 text-center">Error: {queueError}</div>
-        )}
+
+        {/* Search results */}
         <div className="grid grid-cols-2 gap-3">
           {results.map((result) => (
             <SongSearchResult
@@ -101,13 +91,6 @@ export default function Home() {
             />
           ))}
         </div>
-        {sessionId && (
-          <div className="text-sm text-gray-500 text-center">
-            Session: {sessionId.slice(0, 8)}...
-          </div>
-        )}
-        {/* Use queue from real-time updates */}
-        <RadioPlayer queue={queue} />
       </div>
     </div>
   );

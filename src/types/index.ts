@@ -28,30 +28,21 @@ export interface BaseErrorResponse {
   error: string;
 }
 
-// Session Management Types - Separated Structure
-
-// Session metadata (private - server only)
 export interface SessionMetadata {
-  id: string;
+  playlist: SessionPlaylistItem[];
   createdAt: string;
-  lastActivity: string;
-  seedSong: Song;
-  currentIndex: number;
 }
 
-// Session queue (public - readable by clients)
+export interface SessionPlaylistItem {
+  id: string;
+  song: Song;
+  reason: string;
+}
+
 export interface SessionQueue {
-  sessionId: string;
   queue: QueueItem[];
-  lastUpdated: string;
 }
 
-// Legacy combined interface (for backward compatibility)
-export interface RadioSession {
-  id: string;
-  createdAt: string;
-  lastActivity: string;
-  seedSong: Song;
-  currentIndex: number;
-  queue: QueueItem[];
+export interface TalkSegment {
+  text: string;
 }

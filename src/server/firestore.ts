@@ -40,7 +40,24 @@ if (!getApps().length) {
   }
 }
 
-// Get Firestore instance
+// Track if settings have been applied to avoid multiple calls
+let settingsApplied = false;
+
+// Get Firestore instance with settings
 const db = getFirestore();
+
+// Configure Firestore settings - this needs to be done before any operations
+if (!settingsApplied) {
+  try {
+    db.settings({
+      ignoreUndefinedProperties: true,
+    });
+    settingsApplied = true;
+  } catch (error) {
+    // Settings may have already been applied, which is fine
+    console.warn("Firestore settings already applied:", error);
+    settingsApplied = true;
+  }
+}
 
 export default db;

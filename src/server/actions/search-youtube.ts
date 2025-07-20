@@ -2,7 +2,7 @@
 
 import { Song } from "@/types";
 import { YTNodes } from "youtubei.js";
-import innertube from "../clients/youtube";
+import innertube from "../youtube";
 
 export async function searchYouTube(query: string): Promise<Song[]> {
   try {

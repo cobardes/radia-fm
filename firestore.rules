@@ -11,5 +11,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+
+    // Talk segments - no client access (server-side only)
+    // These are accessed via the API endpoint which generates speech on demand
+    match /talkSegments/{segmentId} {
+      allow read, write: if false;
+    }
   }
 } 

@@ -8,13 +8,13 @@ const execAsync = promisify(exec);
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ videoId: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const videoId = (await params).videoId;
+  const id = (await params).id;
 
   // Define the output path
   const outputDir = path.join(process.cwd(), "downloads");
-  const outputPath = path.join(outputDir, `${videoId}.mp3`);
+  const outputPath = path.join(outputDir, `${id}.mp3`);
 
   try {
     // Ensure the downloads directory exists
@@ -24,10 +24,10 @@ export async function GET(
 
     // Check if file already exists
     if (!fs.existsSync(outputPath)) {
-      console.log(`Downloading audio for video ID: ${videoId}`);
+      console.log(`Downloading audio for video ID: ${id}`);
 
       // Download audio as MP3 using yt-dlp
-      const command = `yt-dlp -f ba -x --audio-format mp3 --audio-quality 192K -o "${outputPath}" "https://www.youtube.com/watch?v=${videoId}"`;
+      const command = `yt-dlp -f ba -x --audio-format mp3 --audio-quality 192K -o "${outputPath}" "https://www.youtube.com/watch?v=${id}"`;
       await execAsync(command);
 
       console.log(`Audio downloaded successfully: ${outputPath}`);
@@ -80,7 +80,7 @@ export async function GET(
       return new NextResponse(audioBuffer, {
         headers: {
           "Content-Type": "audio/mpeg",
-          "Content-Disposition": `inline; filename="${videoId}.mp3"`,
+          "Content-Disposition": `inline; filename="${id}.mp3"`,
           "Content-Length": audioBuffer.length.toString(),
           "Accept-Ranges": "bytes",
           "Cache-Control": "public, max-age=3600",

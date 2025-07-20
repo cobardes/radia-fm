@@ -10,7 +10,7 @@ function SongSearchResult({
 }) {
   return (
     <div
-      className="flex flex-col gap-3 bg-gray-100 rounded-lg p-4 overflow-hidden cursor-pointer group"
+      className="flex flex-col gap-3 bg-neutral-100 dark:bg-neutral-900 rounded-lg p-4 overflow-hidden cursor-pointer group"
       onClick={() => onSelect(song)}
     >
       {song.thumbnail && (
@@ -27,7 +27,7 @@ function SongSearchResult({
             alt={song.title}
             width={120}
             height={120}
-            className="rounded w-full h-full relative z-10 outline outline-white/20"
+            className="rounded w-full h-full relative z-10 outline outline-white/20 dark:outline-gray-600/30"
           />
         </div>
       )}
@@ -35,7 +35,9 @@ function SongSearchResult({
         <h2 className="text-sm font-semibold leading-tight overflow-hidden text-ellipsis whitespace-nowrap">
           {song.title}
         </h2>
-        <p className="text-sm text-black/60">{song.artists.join(", ")}</p>
+        <p className="text-sm text-black/60 dark:text-white/60">
+          {song.artists.join(", ")}
+        </p>
       </div>
     </div>
   );
