@@ -1,5 +1,6 @@
 "use server";
 
+import { beginSessionPrompt } from "@/prompts";
 import db from "@/server/firestore";
 import {
   SessionMetadata,
@@ -30,7 +31,11 @@ export async function startSession(
 
   const generatedGreeting = await generateObject({
     model: openai("gpt-4.1-nano"),
-    prompt: `You are a DJ for an AI radio app called Radius. Do not mention you are AI. Use a friendly but not too enthusiastic tone. In a brief message, greet the user and introduce the first song: ${seedSong.title} by ${seedSong.artists[0]}. When mentioning the song, ignore any tags like "Remastered", "Live" or "Version". Use the following language: ${language}`,
+    prompt: beginSessionPrompt({
+      songTitle: seedSong.title,
+      artistName: seedSong.artists[0],
+      language,
+    }),
     schema: z.object({
       text: z.string().describe("The text of the greeting"),
     }),
@@ -100,7 +105,9 @@ export async function startSession(
     db.collection("sessionQueues").doc(sessionId).set(sessionQueue),
   ]);
 
-  void generateSessionQueue(sessionId);
+  setTimeout(() => {
+    void generateSessionQueue(sessionId);
+  }, 3000);
 
   return sessionId;
 }

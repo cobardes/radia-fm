@@ -12,7 +12,7 @@ export default function Home() {
   const [results, setResults] = useState<Song[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedLanguage, setSelectedLanguage] =
-    useState<TalkSegmentLanguage>("Neutral Spanish");
+    useState<TalkSegmentLanguage>("British English");
 
   const router = useRouter();
   const startSessionMutation = useStartSessionMutation();
@@ -73,8 +73,8 @@ export default function Home() {
               }
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="Neutral Spanish">Neutral Spanish</option>
               <option value="British English">British English</option>
+              <option value="Neutral Spanish">Neutral Spanish</option>
             </select>
           </div>
 

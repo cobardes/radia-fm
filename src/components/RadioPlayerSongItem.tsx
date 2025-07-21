@@ -97,7 +97,9 @@ function RadioPlayerSongItem({
 
   return (
     <div
-      className={`flex flex-col gap-2 ${currentIndex > index ? "hidden" : ""}`}
+      className={`flex flex-col gap-2 ${
+        currentIndex > index ? "opacity-50" : ""
+      }`}
     >
       <div className="flex items-center gap-2">
         <Image

@@ -1,5 +1,5 @@
 import { talkSegments } from "@/server/db";
-import { generateSpeech } from "@/utils";
+import { generateSpeech } from "@/utils/generate-speech-elevenlabs";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -23,19 +23,44 @@ export async function GET(
       );
     }
 
-    const mp3Buffer = await generateSpeech(
+    // Get the streaming audio response from ElevenLabs
+    const audioStream = await generateSpeech(
       segmentData.text,
       segmentData.language
     );
 
-    // Return the MP3 data as a binary response
-    return new NextResponse(mp3Buffer, {
+    // Convert ReadableStream<Uint8Array> to ReadableStream<Uint8Array> for NextResponse
+    const stream = new ReadableStream({
+      start(controller) {
+        const reader = audioStream.getReader();
+
+        function pump(): Promise<void> {
+          return reader.read().then(({ done, value }) => {
+            if (done) {
+              controller.close();
+              return;
+            }
+
+            controller.enqueue(value);
+            return pump();
+          });
+        }
+
+        return pump().catch((error) => {
+          console.error("Stream error:", error);
+          controller.error(error);
+        });
+      },
+    });
+
+    // Return streaming response
+    return new NextResponse(stream, {
       status: 200,
       headers: {
         "Content-Type": "audio/mpeg",
-        "Content-Length": mp3Buffer.length.toString(),
         "Content-Disposition": 'attachment; filename="speech.mp3"',
         "Cache-Control": "public, max-age=86400, stale-while-revalidate=43200",
+        // Remove Content-Length since we're streaming
       },
     });
   } catch (error) {

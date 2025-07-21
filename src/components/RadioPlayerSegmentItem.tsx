@@ -10,7 +10,7 @@ interface RadioPlayerSegmentItemProps {
   onLoad: (itemId: string) => void;
 }
 
-export const SEGMENT_ENDING_OFFSET_SECONDS = 1;
+export const SEGMENT_ENDING_OFFSET_SECONDS = 0;
 
 const BACKGROUND_FADE_IN_DURATION_MS = 3000;
 const BACKGROUND_FADE_OUT_DURATION_MS = 3000;
@@ -108,7 +108,7 @@ function RadioPlayerSegmentItem({
       }, BACKGROUND_FADE_OUT_DURATION_MS);
     }
 
-    if (audio.currentTime > audio.duration - SEGMENT_ENDING_OFFSET_SECONDS) {
+    if (audio.currentTime >= audio.duration - SEGMENT_ENDING_OFFSET_SECONDS) {
       finished.current = true;
       playNext();
     }
@@ -135,7 +135,9 @@ function RadioPlayerSegmentItem({
 
   return (
     <div
-      className={`flex flex-col gap-2 ${currentIndex > index ? "hidden" : ""}`}
+      className={`flex flex-col gap-2 ${
+        currentIndex > index ? "opacity-50" : ""
+      }`}
     >
       <div className="flex items-center gap-2">
         <div

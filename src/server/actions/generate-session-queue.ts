@@ -10,7 +10,6 @@ import {
 } from "@/types";
 import { formatPlaylistAsString } from "@/utils";
 import { google } from "@ai-sdk/google";
-import { openai } from "@ai-sdk/openai";
 import { generateObject, generateText } from "ai";
 import { randomUUID } from "crypto";
 import { z } from "zod";
@@ -45,6 +44,7 @@ export async function generateSessionQueue(sessionId: string) {
   const sessionData = session.data() as SessionMetadata;
 
   log(`Previous playlist contains ${sessionData.playlist.length} items`);
+  log(`Drafting playlist...`);
 
   const playlistDraft = await generateText({
     model: google("gemini-2.5-pro", {
@@ -52,14 +52,14 @@ export async function generateSessionQueue(sessionId: string) {
     }),
     prompt: generatePlaylistPrompt({
       previousPlaylist: formatPlaylistAsString(sessionData.playlist),
-      count: "6",
+      count: "10",
     }),
   });
 
-  log(`Playlist draft: ${playlistDraft.text}`);
+  log(`Playlist drafted correctly. Structuring...`);
 
   const structuredPlaylistDraft = await generateObject({
-    model: openai("gpt-4.1-nano"),
+    model: google("gemini-2.5-flash-lite-preview-06-17"),
     prompt: `Structure the given playlist. Retain the full text of the reasons below each song.
 
     Playlist:
@@ -80,11 +80,7 @@ export async function generateSessionQueue(sessionId: string) {
     }),
   });
 
-  log(
-    `Structured playlist draft: ${JSON.stringify(
-      structuredPlaylistDraft.object
-    )}`
-  );
+  log(`Structured playlist draft correctly.`);
 
   // Search for each song and create SessionPlaylistItem objects
   const newPlaylistItems: SessionPlaylistItem[] = [];
@@ -109,7 +105,11 @@ export async function generateSessionQueue(sessionId: string) {
     }
   }
 
-  log(`Generated ${newPlaylistItems.length} playlist items`);
+  log(
+    `New playlist items: ${newPlaylistItems
+      .map((item) => item.song.title)
+      .join(", ")}`
+  );
 
   await sessionRef.update({
     playlist: [...sessionData.playlist, ...newPlaylistItems],
@@ -118,10 +118,10 @@ export async function generateSessionQueue(sessionId: string) {
   log(`Generating script...`);
 
   const scriptDraft = await generateObject({
-    model: openai("gpt-4.1"),
+    model: google("gemini-2.5-pro"),
     prompt: generateScriptPrompt({
       playlist: formatPlaylistAsString(newPlaylistItems, true),
-      language: "Neutral Spanish",
+      language: sessionData.language,
     }),
     schema: z.object({
       script: z
@@ -145,7 +145,16 @@ export async function generateSessionQueue(sessionId: string) {
     }),
   });
 
+  console.log(JSON.stringify(scriptDraft.object, null, 2));
+
   log(`Generated script with ${scriptDraft.object.script.length} items`);
+
+  log(
+    `Songs in the script: ${scriptDraft.object.script
+      .filter((item) => item.type === "song")
+      .map((item) => item.title)
+      .join(", ")}`
+  );
 
   // Get the current queue
   const currentSessionQueue = await queueRef.get();
@@ -175,9 +184,7 @@ export async function generateSessionQueue(sessionId: string) {
         language: sessionData.language,
       });
 
-      console.log(
-        `[SID:${sessionId.slice(0, 8)}] Created talkSegment: ${segmentId}`
-      );
+      log(`Created talkSegment: ${segmentId}`);
 
       // Create a segment queue item
       const segmentItem: SegmentItem = {

@@ -1,19 +1,3 @@
-import { readFileSync } from "fs";
-import { join } from "path";
-
-function loadPromptTemplate(promptName: string): string {
-  const promptPath = join(
-    process.cwd(),
-    "src",
-    "prompts",
-    promptName,
-    "prompt.md"
-  );
-  const prompt = readFileSync(promptPath, "utf-8");
-
-  return prompt;
-}
-
 function fillPrompt<T extends Record<string, string>>(
   template: string,
   variables: T
@@ -30,10 +14,8 @@ function fillPrompt<T extends Record<string, string>>(
 }
 
 export function createPrompt<T extends string>(
-  promptName: string
+  template: string
 ): (variables: Record<T, string>) => string {
-  const template = loadPromptTemplate(promptName);
-
   return (variables: Record<T, string>) => {
     return fillPrompt(template, variables);
   };
