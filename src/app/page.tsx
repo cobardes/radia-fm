@@ -1,8 +1,9 @@
 "use client";
 
 import SongSearchResult from "@/components/SongSearchResult";
-import { useStartSessionMutation } from "@/hooks/mutations";
-import { Song, TalkSegmentLanguage } from "@/types";
+import { useCreateStationMutation } from "@/hooks/mutations/useCreateStation";
+import { Song } from "@/types";
+import { StationLanguage } from "@/types/station";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import ScaleLoader from "react-spinners/ScaleLoader";
@@ -12,10 +13,10 @@ export default function Home() {
   const [results, setResults] = useState<Song[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedLanguage, setSelectedLanguage] =
-    useState<TalkSegmentLanguage>("British English");
+    useState<StationLanguage>("British English");
 
   const router = useRouter();
-  const startSessionMutation = useStartSessionMutation();
+  const createStationMutation = useCreateStationMutation();
 
   useEffect(() => {
     if (!query) return;
@@ -31,23 +32,23 @@ export default function Home() {
     async (song: Song) => {
       setResults([]); // Clear search results
 
-      startSessionMutation.mutate(
+      createStationMutation.mutate(
         { seedSong: song, language: selectedLanguage },
         {
-          onSuccess: (sessionData) => {
-            // Redirect to the session page
-            router.push(`/session/${sessionData.sessionId}`);
+          onSuccess: (stationData) => {
+            // Redirect to the station page
+            router.push(`/stations/${stationData.stationId}`);
           },
           onError: (error) => {
-            console.error("Failed to create session:", error);
+            console.error("Failed to create station:", error);
           },
         }
       );
     },
-    [startSessionMutation, router, selectedLanguage]
+    [createStationMutation, router, selectedLanguage]
   );
 
-  const isCreatingSession = startSessionMutation.isPending;
+  const isCreatingStation = createStationMutation.isPending;
 
   return (
     <div className="font-sans p-8">
@@ -69,7 +70,7 @@ export default function Home() {
               id="language-select"
               value={selectedLanguage}
               onChange={(e) =>
-                setSelectedLanguage(e.target.value as TalkSegmentLanguage)
+                setSelectedLanguage(e.target.value as StationLanguage)
               }
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
@@ -92,14 +93,14 @@ export default function Home() {
         </div>
 
         {/* Loading states */}
-        {(isSearching || isCreatingSession) && (
+        {(isSearching || isCreatingStation) && (
           <div className="flex justify-center items-center gap-2">
             <ScaleLoader color="#000" />
             <div>
               {isSearching
                 ? "Searching..."
-                : isCreatingSession
-                ? "Creating session..."
+                : isCreatingStation
+                ? "Creating station..."
                 : ""}
             </div>
           </div>

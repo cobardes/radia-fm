@@ -52,8 +52,14 @@ export interface TalkSegment {
   language: TalkSegmentLanguage;
 }
 
+export interface Speech {
+  text: string;
+  language: StationLanguage;
+}
+
 // Zod schemas for AI-generated data structures
 import { z } from "zod";
+import { StationLanguage } from "./station";
 
 // Schema for individual playlist songs from AI generation
 export const playlistSongSchema = z.object({

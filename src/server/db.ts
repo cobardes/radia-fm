@@ -1,4 +1,5 @@
-import { SessionMetadata, SessionQueue, TalkSegment } from "@/types";
+import { SessionMetadata, SessionQueue, Speech, TalkSegment } from "@/types";
+import { Station } from "@/types/station";
 import {
   DocumentData,
   FirestoreDataConverter,
@@ -14,6 +15,9 @@ const converter = <T extends DocumentData>(): FirestoreDataConverter<T> => ({
 
 const dataPoint = <T extends DocumentData>(collectionPath: string) =>
   db.collection(collectionPath).withConverter(converter<T>());
+
+export const stations = dataPoint<Station>("stations");
+export const speeches = dataPoint<Speech>("speeches");
 
 export const sessions = dataPoint<SessionMetadata>("sessions");
 export const queues = dataPoint<SessionQueue>("sessionQueues");
