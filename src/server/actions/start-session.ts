@@ -13,7 +13,7 @@ import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { generateSessionQueue } from "./generate-session-queue";
+import { extendSessionQueue } from "./extend-session-queue";
 
 export async function startSession(
   seedSong: Song,
@@ -106,7 +106,7 @@ export async function startSession(
   ]);
 
   setTimeout(() => {
-    void generateSessionQueue(sessionId);
+    void extendSessionQueue(sessionId);
   }, 3000);
 
   return sessionId;

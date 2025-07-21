@@ -1,3 +1,8 @@
+import { createPrompt } from "@/utils";
+
+type Variables = "playlist" | "language";
+
+const TEMPLATE = /* markdown */ `
 ## Playlist
 
 Here is a list of the songs in the playlist and why they were chosen:
@@ -26,7 +31,7 @@ You are part of an AI app named "Radius" that creates a radio broadcast on the f
 
 - Include ALL songs in the playlist.
 - Always finish your script with music.
-- Use patterns where more than one song can play back-to-back. It is NOT acceptable to do a simple `talk segment -> 1 song -> talk segment` loop.
+- Use patterns where more than one song can play back-to-back. It is NOT acceptable to do a simple \`talk segment -> 1 song -> talk segment\` loop.
 
 ## Example with 5 songs
 
@@ -49,3 +54,6 @@ To really get a handle on where that raw, stripped-down, but still hugely impact
 Speaking of that essential New York punk lineage and that direct, unvarnished approach to rock, here's another one for you.
 
 **SONG 6: "NYC" - Interpol plays**
+`;
+
+export const generateScriptPrompt = createPrompt<Variables>(TEMPLATE);

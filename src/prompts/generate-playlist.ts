@@ -1,6 +1,13 @@
+import { createPrompt } from "@/utils";
+
+type Variables = "previousPlaylist" | "count" | "artist";
+
+const TEMPLATE = /* markdown */ `
 You are building an interactive playlist. These are the songs that have played so far, and why they were selected:
 
 {previousPlaylist}
+
+## Context
 
 ## Context
 
@@ -15,3 +22,6 @@ Find {count} good songs to follow up, and thoroughly explain each choice in a si
 - Make a selection where each song flows in some way with the next.
 - Avoid "closing" the playlist at no. {count}. We will continue to add more songs.
 - Do not write any introductions or conclusions. Only do song + reasoning combos.
+`;
+
+export const generatePlaylistPrompt = createPrompt<Variables>(TEMPLATE);

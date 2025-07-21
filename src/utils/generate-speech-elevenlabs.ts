@@ -43,7 +43,7 @@ export async function generateSpeech(
 
   const audio = await elevenlabs.textToSpeech.convert(voiceId, {
     text: prompt,
-    modelId: "eleven_turbo_v2_5",
+    modelId: "eleven_multilingual_v2",
     outputFormat: "mp3_44100_128",
     voiceSettings,
   });

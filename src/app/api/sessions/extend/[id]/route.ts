@@ -1,5 +1,4 @@
-import { generateSessionQueue } from "@/server/actions/generate-session-queue";
-import { sessions } from "@/server/db";
+import { extendSessionQueue } from "@/server/actions/extend-session-queue";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(
@@ -8,13 +7,21 @@ export async function POST(
 ) {
   const { id } = params;
 
-  const session = await sessions.doc(id).get();
-
-  if (!session.exists) {
-    return NextResponse.json({ error: "Session not found" }, { status: 404 });
+  if (!id) {
+    return NextResponse.json(
+      { error: "Session ID is required" },
+      { status: 400 }
+    );
   }
 
-  await generateSessionQueue(id);
-
-  return NextResponse.json({ message: "Session extension started" });
+  try {
+    await extendSessionQueue(id);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error extending session:", error);
+    return NextResponse.json(
+      { error: "Failed to extend session" },
+      { status: 500 }
+    );
+  }
 }
