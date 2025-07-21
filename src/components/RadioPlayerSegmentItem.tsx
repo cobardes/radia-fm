@@ -12,7 +12,7 @@ interface RadioPlayerSegmentItemProps {
 
 export const SEGMENT_ENDING_OFFSET_SECONDS = 0;
 
-const BACKGROUND_FADE_IN_DURATION_MS = 3000;
+const BACKGROUND_FADE_IN_DURATION_MS = 2000;
 const BACKGROUND_FADE_OUT_DURATION_MS = 3000;
 const BACKGROUND_FADE_IN_VOLUME = 0.05;
 
@@ -57,38 +57,10 @@ function RadioPlayerSegmentItem({
     const audio = event.target as HTMLAudioElement;
     const timeRemaining = audio.duration - audio.currentTime;
 
-    // Start background music 2 seconds after segment starts
-    if (
-      !backgroundStarted.current &&
-      audio.currentTime >= 2 &&
-      backgroundRef.current &&
-      previousSong
-    ) {
-      backgroundStarted.current = true;
-
-      // Set initial volume to 0
-      backgroundRef.current.volume = 0;
-
-      // Start from 33% of the track duration
-      const startPosition = backgroundRef.current.duration * 0.33;
-      backgroundRef.current.currentTime = startPosition;
-
-      // Start playing
-      backgroundRef.current.play();
-
-      // Fade in from 0 to 0.1 over 3 seconds
-      fadeVolume(
-        backgroundRef.current,
-        0,
-        BACKGROUND_FADE_IN_VOLUME,
-        BACKGROUND_FADE_IN_DURATION_MS
-      );
-    }
-
-    // Fade out background music 5 seconds before segment ends (3 seconds before SEGMENT_ENDING_OFFSET_SECONDS)
+    // Fade out background music 3 seconds before segment ends (3 seconds before SEGMENT_ENDING_OFFSET_SECONDS)
     if (
       !backgroundFadedOut.current &&
-      timeRemaining <= 5 &&
+      timeRemaining <= 3 &&
       backgroundRef.current &&
       backgroundStarted.current
     ) {
@@ -120,10 +92,38 @@ function RadioPlayerSegmentItem({
       backgroundStarted.current = false;
       backgroundFadedOut.current = false;
 
-      audioRef.current!.volume = 0.75;
-      audioRef.current?.play();
+      // Start background music immediately if we have a previous song
+      if (backgroundRef.current && previousSong) {
+        backgroundStarted.current = true;
+
+        // Set initial volume to 0
+        backgroundRef.current.volume = 0;
+
+        // Start from 33% of the track duration
+        const startPosition = backgroundRef.current.duration * 0.33;
+        backgroundRef.current.currentTime = startPosition;
+
+        // Start playing
+        backgroundRef.current.play();
+
+        // Fade in from 0 to 0.05 over 2 seconds
+        fadeVolume(
+          backgroundRef.current,
+          0,
+          BACKGROUND_FADE_IN_VOLUME,
+          BACKGROUND_FADE_IN_DURATION_MS
+        );
+      }
+
+      // Start the main audio (talk segment) after 1 second delay
+      setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.volume = 0.75;
+          audioRef.current.play();
+        }
+      }, 1500);
     }
-  }, [isActive]);
+  }, [isActive, previousSong]);
 
   useEffect(() => {
     if (currentIndex > index && !finished.current) {

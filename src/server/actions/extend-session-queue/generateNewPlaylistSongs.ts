@@ -1,3 +1,4 @@
+import { langsmithClient } from "@/lib/langsmith";
 import { generatePlaylistPrompt } from "@/prompts";
 import {
   PlaylistSong,
@@ -7,12 +8,13 @@ import {
 import { formatPlaylistAsString } from "@/utils";
 import { google } from "@ai-sdk/google";
 import { generateObject, generateText } from "ai";
+import { traceable } from "langsmith/traceable";
 
-export async function generateNewPlaylistSongs(
+const _generateNewPlaylistSongs = async (
   sessionData: SessionMetadata,
   count: number = 10,
   sessionId: string
-): Promise<PlaylistSong[]> {
+): Promise<PlaylistSong[]> => {
   const log = (message: string) => {
     console.log(`[SID:${sessionId.slice(0, 8)}] ${message}`);
   };
@@ -21,7 +23,7 @@ export async function generateNewPlaylistSongs(
   log(`Drafting playlist...`);
 
   const playlistDraft = await generateText({
-    model: google("gemini-2.5-pro", {
+    model: google("gemini-2.5-flash", {
       useSearchGrounding: true,
     }),
     prompt: generatePlaylistPrompt({
@@ -29,6 +31,15 @@ export async function generateNewPlaylistSongs(
       artist: sessionData.playlist[0].song.artists[0],
       count: count.toString(),
     }),
+    experimental_telemetry: {
+      isEnabled: true,
+      metadata: {
+        ls_run_name: "draft-playlist",
+        sessionId: sessionId.slice(0, 8),
+        artist: sessionData.playlist[0].song.artists[0],
+        count: count.toString(),
+      },
+    },
   });
 
   log(`Playlist drafted correctly. Structuring...`);
@@ -41,9 +52,21 @@ export async function generateNewPlaylistSongs(
     ${playlistDraft.text}
     `,
     schema: structuredPlaylistSchema,
+    experimental_telemetry: {
+      isEnabled: true,
+      metadata: {
+        ls_run_name: "structure-playlist",
+        sessionId: sessionId.slice(0, 8),
+      },
+    },
   });
 
   log(`Structured playlist draft correctly.`);
 
   return structuredPlaylistDraft.object.playlist;
-}
+};
+
+export const generateNewPlaylistSongs = traceable(_generateNewPlaylistSongs, {
+  name: "generate-new-playlist-songs",
+  client: langsmithClient,
+});

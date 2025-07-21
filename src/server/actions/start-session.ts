@@ -1,5 +1,6 @@
 "use server";
 
+import { langsmithClient } from "@/lib/langsmith";
 import { beginSessionPrompt } from "@/prompts";
 import db from "@/server/firestore";
 import {
@@ -9,16 +10,18 @@ import {
   TalkSegment,
   TalkSegmentLanguage,
 } from "@/types";
+import { google } from "@ai-sdk/google";
 import { openai } from "@ai-sdk/openai";
-import { generateObject } from "ai";
+import { generateObject, generateText } from "ai";
 import { randomUUID } from "crypto";
+import { traceable } from "langsmith/traceable";
 import { z } from "zod";
 import { extendSessionQueue } from "./extend-session-queue";
 
-export async function startSession(
+const _startSession = async (
   seedSong: Song,
   language: TalkSegmentLanguage
-): Promise<string> {
+): Promise<string> => {
   if (!seedSong || !seedSong.id) {
     throw new Error("Valid seedSong is required");
   }
@@ -29,8 +32,23 @@ export async function startSession(
 
   console.log(`[SID:${sessionId.slice(0, 8)}] Generating greeting...`);
 
+  const seedSongInfo = await generateText({
+    model: google("gemini-2.5-flash", {
+      useSearchGrounding: true,
+    }),
+    prompt: `
+    Research the song ${seedSong.title} by ${seedSong.artists[0]} and write a brief 200 word paragraph about it. Return the paragraph and nothing else.
+    `,
+    experimental_telemetry: {
+      isEnabled: true,
+      metadata: {
+        ls_run_name: "generate-seed-song-info",
+      },
+    },
+  });
+
   const generatedGreeting = await generateObject({
-    model: openai("gpt-4.1-nano"),
+    model: openai("gpt-4.1-mini"),
     prompt: beginSessionPrompt({
       songTitle: seedSong.title,
       artistName: seedSong.artists[0],
@@ -39,6 +57,15 @@ export async function startSession(
     schema: z.object({
       text: z.string().describe("The text of the greeting"),
     }),
+    experimental_telemetry: {
+      isEnabled: true,
+      metadata: {
+        ls_run_name: "generate-greeting",
+        sessionId: sessionId.slice(0, 8),
+        language,
+        seedSong: seedSong.title,
+      },
+    },
   });
 
   console.log(
@@ -92,7 +119,7 @@ export async function startSession(
       {
         id: seedSong.id,
         song: seedSong,
-        reason: "This song was selected by the user.",
+        reason: `This song was selected by the user. ${seedSongInfo.text}`,
       },
     ],
     language,
@@ -109,5 +136,13 @@ export async function startSession(
     void extendSessionQueue(sessionId);
   }, 3000);
 
+  // Flush traces to LangSmith
+  await langsmithClient.awaitPendingTraceBatches();
+
   return sessionId;
-}
+};
+
+export const startSession = traceable(_startSession, {
+  name: "start-session",
+  client: langsmithClient,
+});

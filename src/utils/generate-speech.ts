@@ -33,7 +33,7 @@ export async function generateSpeechBuffer(
   language: TalkSegmentLanguage,
   options: GenerateSpeechOptions = {}
 ): Promise<Buffer> {
-  const { temperature = 1, voiceName = "Iapetus" } = options;
+  const { temperature = 1, voiceName = "Achernar" } = options;
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
@@ -51,17 +51,17 @@ export async function generateSpeechBuffer(
     },
   };
 
-  const model = "gemini-2.5-flash-preview-tts";
+  const model = "gemini-2.5-pro-preview-tts";
   const contents = [
     {
       role: "user" as const,
       parts: [
         {
-          text: `Read aloud, in a brisk pace and low pitch. The tone should be friendly and engaging, but not too excited. ${
+          text: `You are an indie radio DJ. You have a deep knowledge of the subject, but speak in a friendly and casual manner, like telling a story to a friend. You aim for a lower, smooth voice that's ideal for the radio. You speak fairly fast, to keep up with the pace of a radio broadcast. You have a thick British accent. ${
             language === "British English"
               ? "Use a noticeable British accent."
               : ""
-          } This is the text to read aloud:
+          } Read the following segment:
 
           ${prompt}`,
         },

@@ -1,5 +1,7 @@
+import { langsmithClient } from "@/lib/langsmith";
 import { queues, sessions } from "@/server/db";
 import { RadioScript, SessionMetadata, SessionQueue } from "@/types";
+import { traceable } from "langsmith/traceable";
 import { commitSessionUpdates } from "./commitSessionUpdates";
 import { convertScriptToQueueItems } from "./convertScriptToQueueItems";
 import { createScriptTalkSegments } from "./createScriptTalkSegments";
@@ -7,9 +9,7 @@ import { generateNewPlaylistSongs } from "./generateNewPlaylistSongs";
 import { generateRadioScript } from "./generateRadioScript";
 import { resolvePlaylistOnYouTube } from "./resolvePlaylistOnYouTube";
 
-export async function extendSessionQueue(
-  sessionId: string
-): Promise<RadioScript> {
+const _extendSessionQueue = async (sessionId: string): Promise<RadioScript> => {
   const log = (message: string) => {
     console.log(`[SID:${sessionId.slice(0, 8)}] ${message}`);
   };
@@ -54,7 +54,10 @@ export async function extendSessionQueue(
 
     // Step 3: Generate radio script
     const radioScript = await generateRadioScript(
-      newPlaylistItems,
+      [
+        sessionData.playlist[sessionData.playlist.length - 1],
+        ...newPlaylistItems,
+      ],
       sessionData.language,
       sessionId
     );
@@ -89,8 +92,16 @@ export async function extendSessionQueue(
       extending: false,
     });
     throw error;
+  } finally {
+    // Flush traces to LangSmith
+    await langsmithClient.awaitPendingTraceBatches();
   }
-}
+};
+
+export const extendSessionQueue = traceable(_extendSessionQueue, {
+  name: "extend-session-queue",
+  client: langsmithClient,
+});
 
 // Re-export all the individual functions for potential direct usage
 export { commitSessionUpdates } from "./commitSessionUpdates";
