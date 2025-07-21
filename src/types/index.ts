@@ -17,7 +17,7 @@ export type SegmentItem = {
   type: "segment";
   audioUrl: string;
   id: string;
-  title?: string;
+  text: string;
 };
 
 export type QueueItem = SongItem | SegmentItem;
@@ -28,8 +28,11 @@ export interface BaseErrorResponse {
   error: string;
 }
 
+export type TalkSegmentLanguage = "British English" | "Neutral Spanish";
+
 export interface SessionMetadata {
   playlist: SessionPlaylistItem[];
+  language: TalkSegmentLanguage;
   createdAt: string;
 }
 
@@ -41,8 +44,10 @@ export interface SessionPlaylistItem {
 
 export interface SessionQueue {
   queue: QueueItem[];
+  extending: boolean;
 }
 
 export interface TalkSegment {
   text: string;
+  language: TalkSegmentLanguage;
 }

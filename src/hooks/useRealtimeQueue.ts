@@ -1,16 +1,19 @@
 import { db } from "@/lib/firebase";
-import { QueueItem, SessionQueue } from "@/types";
+import { SessionQueue } from "@/types";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 export function useRealtimeQueue(sessionId: string | null) {
-  const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [sessionQueue, setSessionQueue] = useState<SessionQueue>({
+    queue: [],
+    extending: false,
+  });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!sessionId) {
-      setQueue([]);
+      setSessionQueue({ queue: [], extending: false });
       setLoading(false);
       setError(null);
       return;
@@ -25,10 +28,10 @@ export function useRealtimeQueue(sessionId: string | null) {
       sessionQueueRef,
       (doc) => {
         if (doc.exists()) {
-          const sessionQueue = doc.data() as SessionQueue;
-          setQueue(sessionQueue.queue);
+          const sessionQueueData = doc.data() as SessionQueue;
+          setSessionQueue(sessionQueueData);
         } else {
-          setQueue([]);
+          setSessionQueue({ queue: [], extending: false });
         }
         setLoading(false);
       },
@@ -44,7 +47,8 @@ export function useRealtimeQueue(sessionId: string | null) {
   }, [sessionId]);
 
   return {
-    queue,
+    queue: sessionQueue.queue,
+    extending: sessionQueue.extending,
     loading,
     error,
   };

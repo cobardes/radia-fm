@@ -1,14 +1,23 @@
 "use server";
 
 import db from "@/server/firestore";
-import { SessionMetadata, SessionQueue, Song, TalkSegment } from "@/types";
+import {
+  SessionMetadata,
+  SessionQueue,
+  Song,
+  TalkSegment,
+  TalkSegmentLanguage,
+} from "@/types";
 import { openai } from "@ai-sdk/openai";
 import { generateObject } from "ai";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { generateSessionQueue } from "./generate-session-queue";
 
-export async function startSession(seedSong: Song): Promise<string> {
+export async function startSession(
+  seedSong: Song,
+  language: TalkSegmentLanguage
+): Promise<string> {
   if (!seedSong || !seedSong.id) {
     throw new Error("Valid seedSong is required");
   }
@@ -21,7 +30,7 @@ export async function startSession(seedSong: Song): Promise<string> {
 
   const generatedGreeting = await generateObject({
     model: openai("gpt-4.1-nano"),
-    prompt: `You are a DJ for an AI radio app called Radius. Do not mention you are AI. Use a friendly but not too enthusiastic tone. In a brief message, greet the user and introduce the first song: ${seedSong.title} by ${seedSong.artists[0]}. When mentioning the song, ignore any tags like "Remastered", "Live" or "Version"`,
+    prompt: `You are a DJ for an AI radio app called Radius. Do not mention you are AI. Use a friendly but not too enthusiastic tone. In a brief message, greet the user and introduce the first song: ${seedSong.title} by ${seedSong.artists[0]}. When mentioning the song, ignore any tags like "Remastered", "Live" or "Version". Use the following language: ${language}`,
     schema: z.object({
       text: z.string().describe("The text of the greeting"),
     }),
@@ -35,6 +44,7 @@ export async function startSession(seedSong: Song): Promise<string> {
 
   const greetingSegment: TalkSegment = {
     text: generatedGreeting.object.text,
+    language,
   };
 
   await db
@@ -57,7 +67,7 @@ export async function startSession(seedSong: Song): Promise<string> {
       {
         type: "segment",
         id: greetingSegmentId,
-        title: "DJ Greeting",
+        text: greetingSegment.text,
         audioUrl: speechUrl,
       },
       {
@@ -69,6 +79,7 @@ export async function startSession(seedSong: Song): Promise<string> {
         audioUrl: songUrl,
       },
     ],
+    extending: false,
   };
 
   const sessionMetadata: SessionMetadata = {
@@ -79,6 +90,7 @@ export async function startSession(seedSong: Song): Promise<string> {
         reason: "This song was selected by the user.",
       },
     ],
+    language,
     createdAt: new Date().toISOString(),
   };
 

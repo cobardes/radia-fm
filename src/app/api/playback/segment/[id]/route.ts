@@ -23,7 +23,10 @@ export async function GET(
       );
     }
 
-    const mp3Buffer = await generateSpeech(segmentData.text);
+    const mp3Buffer = await generateSpeech(
+      segmentData.text,
+      segmentData.language
+    );
 
     // Return the MP3 data as a binary response
     return new NextResponse(mp3Buffer, {

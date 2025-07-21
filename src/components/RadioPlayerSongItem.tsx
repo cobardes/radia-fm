@@ -6,8 +6,8 @@ import { useContext, useEffect, useRef } from "react";
 import { SEGMENT_ENDING_OFFSET_SECONDS } from "./RadioPlayerSegmentItem";
 import Spinner from "./Spinner";
 
-const INITIAL_VOLUME = 0.075;
-const TARGET_VOLUME = 0.5;
+const INITIAL_VOLUME = 0.35;
+const TARGET_VOLUME = 0.75;
 const FADE_DURATION = 1000;
 const SONG_ENDING_OFFSET_SECONDS = 1;
 
@@ -88,6 +88,13 @@ function RadioPlayerSongItem({
     }
   }, [isActive, currentIndex, queue]);
 
+  useEffect(() => {
+    if (currentIndex > index && !finished.current) {
+      audioRef.current?.pause();
+      finished.current = true;
+    }
+  }, [currentIndex, index]);
+
   return (
     <div
       className={`flex flex-col gap-2 ${currentIndex > index ? "hidden" : ""}`}
@@ -110,7 +117,7 @@ function RadioPlayerSongItem({
           </div>
           <div className="text-sm text-gray-500">{item.artists.join(", ")}</div>
         </div>
-        {!isLoaded && <Spinner color="#000" size={20} />}
+        {!isLoaded && shouldRenderAudio && <Spinner color="#666" size={20} />}
       </div>
       {shouldRenderAudio && (
         <audio

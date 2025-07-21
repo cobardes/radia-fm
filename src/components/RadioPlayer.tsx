@@ -66,6 +66,12 @@ function RadioPlayer({
         playNext,
       }}
     >
+      <button
+        className="text-blue-500 hover:text-blue-600 text-sm underline"
+        onClick={() => playNext()}
+      >
+        Play Next
+      </button>
       <div className="flex flex-col gap-8">
         {queue.map((item, index) => {
           switch (item.type) {

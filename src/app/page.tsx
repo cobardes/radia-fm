@@ -2,7 +2,7 @@
 
 import SongSearchResult from "@/components/SongSearchResult";
 import { useStartSessionMutation } from "@/hooks/mutations";
-import { Song } from "@/types";
+import { Song, TalkSegmentLanguage } from "@/types";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import ScaleLoader from "react-spinners/ScaleLoader";
@@ -11,6 +11,8 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Song[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<TalkSegmentLanguage>("Neutral Spanish");
 
   const router = useRouter();
   const startSessionMutation = useStartSessionMutation();
@@ -30,7 +32,7 @@ export default function Home() {
       setResults([]); // Clear search results
 
       startSessionMutation.mutate(
-        { seedSong: song },
+        { seedSong: song, language: selectedLanguage },
         {
           onSuccess: (sessionData) => {
             // Redirect to the session page
@@ -42,7 +44,7 @@ export default function Home() {
         }
       );
     },
-    [startSessionMutation, router]
+    [startSessionMutation, router, selectedLanguage]
   );
 
   const isCreatingSession = startSessionMutation.isPending;
@@ -54,6 +56,28 @@ export default function Home() {
           <h1 className="text-2xl font-semibold text-center">
             Let&apos;s start by searching for a song:
           </h1>
+
+          {/* Language Selector */}
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="language-select"
+              className="text-sm font-medium text-gray-700"
+            >
+              Select Language:
+            </label>
+            <select
+              id="language-select"
+              value={selectedLanguage}
+              onChange={(e) =>
+                setSelectedLanguage(e.target.value as TalkSegmentLanguage)
+              }
+              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="Neutral Spanish">Neutral Spanish</option>
+              <option value="British English">British English</option>
+            </select>
+          </div>
+
           <input
             type="text"
             placeholder="Type in and press ENTER"

@@ -1,5 +1,6 @@
 "use server";
 
+import { TalkSegmentLanguage } from "@/types";
 import { GoogleGenAI } from "@google/genai";
 import ffmpeg from "fluent-ffmpeg";
 import { promises as fs } from "fs";
@@ -20,6 +21,7 @@ interface GenerateSpeechOptions {
 
 export async function generateSpeech(
   prompt: string,
+  language: TalkSegmentLanguage,
   options: GenerateSpeechOptions = {}
 ): Promise<Buffer> {
   const { temperature = 1, voiceName = "Charon" } = options;
@@ -46,11 +48,13 @@ export async function generateSpeech(
       role: "user" as const,
       parts: [
         {
-          text: `Read aloud, in a brisk pace and conversational tone, in the style of an indie radio DJ, and aim for a lower pitch. The tone should be friendly and engaging, but not too excited. Always use a noticeable British accent:
+          text: `Read aloud, in a brisk pace and low pitch. The tone should be friendly and engaging, but not too excited. ${
+            language === "British English"
+              ? "Use a noticeable British accent."
+              : ""
+          } This is the text to read aloud:
 
-          ${prompt}
-
-          (brief pause)`,
+          ${prompt}`,
         },
       ],
     },

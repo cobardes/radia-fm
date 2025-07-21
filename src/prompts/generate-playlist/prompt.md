@@ -8,10 +8,10 @@ In this scenario, you are doing a "deep dive". This means you are focusing on th
 
 ## Objective
 
-Find 10 good songs to follow up, and thoroughly explain each choice in a single paragraph about 150 words long. Include interesting facts when relevant. Use diverse criteria such as artists and producers involved, genres, decades, influences, etc. Do not focus excessively on the lyrics of the songs.
+Find {count} good songs to follow up, and thoroughly explain each choice in a single paragraph about 150 words long. Include interesting facts when relevant. Use diverse criteria such as artists and producers involved, genres, decades, influences, etc. Do not focus excessively on the lyrics of the songs.
 
 ## Notes
 
 - Make a selection where each song flows in some way with the next.
-- Avoid "closing" the playlist at no. 10. We will continue to add more songs.
+- Avoid "closing" the playlist at no. {count}. We will continue to add more songs.
 - Do not write any introductions or conclusions. Only do song + reasoning combos.

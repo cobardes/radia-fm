@@ -4,30 +4,24 @@ import RadioPlayer from "@/components/RadioPlayer";
 import { useRealtimeQueue } from "@/hooks/useRealtimeQueue";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
 import ScaleLoader from "react-spinners/ScaleLoader";
 
 export default function SessionPage() {
   const params = useParams();
   const sessionId = params.id as string;
-  const [copied, setCopied] = useState(false);
 
   // Real-time session queue data
   const {
     queue,
+    extending,
     loading: queueLoading,
     error: queueError,
   } = useRealtimeQueue(sessionId);
 
-  const handleShare = async () => {
-    try {
-      const sessionUrl = `${window.location.origin}/session/${sessionId}`;
-      await navigator.clipboard.writeText(sessionUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy to clipboard:", error);
-    }
+  const handleExtend = async () => {
+    await fetch(`/api/sessions/extend/${sessionId}`, {
+      method: "POST",
+    });
   };
 
   if (queueError) {
@@ -60,12 +54,6 @@ export default function SessionPage() {
             >
               ← Start New Session
             </Link>
-            <button
-              onClick={handleShare}
-              className="text-blue-500 hover:text-blue-600 text-sm underline"
-            >
-              {copied ? "✓ Copied!" : "Share Session"}
-            </button>
           </div>
           <div className="text-center">
             <h1 className="text-2xl font-semibold">Your Radio Session</h1>
@@ -80,6 +68,22 @@ export default function SessionPage() {
           <div className="flex justify-center items-center gap-2">
             <ScaleLoader color="#000" />
             <div>Loading your playlist...</div>
+          </div>
+        )}
+
+        {extending ? (
+          <div className="flex justify-center items-center gap-2">
+            <ScaleLoader color="#000" />
+            <div>Extending your playlist...</div>
+          </div>
+        ) : (
+          <div className="flex justify-center items-center gap-2">
+            <button
+              onClick={handleExtend}
+              className="text-blue-500 hover:text-blue-600 text-sm underline"
+            >
+              Extend your playlist
+            </button>
           </div>
         )}
 

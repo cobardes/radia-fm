@@ -1,9 +1,10 @@
 import { startSession } from "@/server/actions/start-session";
-import { BaseErrorResponse, Song } from "@/types";
+import { BaseErrorResponse, Song, TalkSegmentLanguage } from "@/types";
 import { NextRequest, NextResponse } from "next/server";
 
 export interface SessionStartRequest {
   seedSong: Song;
+  language: TalkSegmentLanguage;
 }
 
 export interface SessionStartSuccessResponse {
@@ -30,7 +31,7 @@ export async function POST(
       );
     }
 
-    const sessionId = await startSession(body.seedSong);
+    const sessionId = await startSession(body.seedSong, body.language);
 
     return NextResponse.json({
       sessionId,

@@ -17,7 +17,11 @@ import { z } from "zod";
 import { searchYouTube } from "./search-youtube";
 
 export async function generateSessionQueue(sessionId: string) {
-  console.log(`[SID:${sessionId.slice(0, 8)}] Generating session queue...`);
+  const log = (message: string) => {
+    console.log(`[SID:${sessionId.slice(0, 8)}] ${message}`);
+  };
+
+  log("Extending session queue...");
 
   const sessionRef = sessions.doc(sessionId);
   const queueRef = queues.doc(sessionId);
@@ -29,12 +33,18 @@ export async function generateSessionQueue(sessionId: string) {
     throw new Error("Session not found");
   }
 
+  if (sessionQueue.data()?.extending) {
+    log("Session is already extending");
+    return;
+  }
+
+  await queueRef.update({
+    extending: true,
+  });
+
   const sessionData = session.data() as SessionMetadata;
 
-  console.log(
-    `[SID:${sessionId.slice(0, 8)}] Previous playlist:`,
-    formatPlaylistAsString(sessionData.playlist)
-  );
+  log(`Previous playlist contains ${sessionData.playlist.length} items`);
 
   const playlistDraft = await generateText({
     model: google("gemini-2.5-pro", {
@@ -42,10 +52,11 @@ export async function generateSessionQueue(sessionId: string) {
     }),
     prompt: generatePlaylistPrompt({
       previousPlaylist: formatPlaylistAsString(sessionData.playlist),
+      count: "6",
     }),
   });
 
-  console.log(playlistDraft.text);
+  log(`Playlist draft: ${playlistDraft.text}`);
 
   const structuredPlaylistDraft = await generateObject({
     model: openai("gpt-4.1-nano"),
@@ -69,14 +80,18 @@ export async function generateSessionQueue(sessionId: string) {
     }),
   });
 
-  console.log(structuredPlaylistDraft.object);
+  log(
+    `Structured playlist draft: ${JSON.stringify(
+      structuredPlaylistDraft.object
+    )}`
+  );
 
   // Search for each song and create SessionPlaylistItem objects
-  const newPlaylist: SessionPlaylistItem[] = [...sessionData.playlist];
+  const newPlaylistItems: SessionPlaylistItem[] = [];
 
   for (const item of structuredPlaylistDraft.object.playlist) {
     const searchQuery = `${item.title} ${item.artist}`;
-    console.log(`[SID:${sessionId.slice(0, 8)}] Searching for: ${searchQuery}`);
+    log(`Searching for: ${searchQuery}`);
 
     const searchResults = await searchYouTube(searchQuery);
 
@@ -87,36 +102,26 @@ export async function generateSessionQueue(sessionId: string) {
         song: firstSong,
         reason: item.reason,
       };
-      newPlaylist.push(sessionPlaylistItem);
-      console.log(
-        `[SID:${sessionId.slice(0, 8)}] Found: ${
-          firstSong.title
-        } by ${firstSong.artists.join(", ")}`
-      );
+      newPlaylistItems.push(sessionPlaylistItem);
+      log(`Found: ${firstSong.title} by ${firstSong.artists.join(", ")}`);
     } else {
-      console.log(
-        `[SID:${sessionId.slice(0, 8)}] No results found for: ${searchQuery}`
-      );
+      log(`No results found for: ${searchQuery}`);
     }
   }
 
-  console.log(
-    `[SID:${sessionId.slice(0, 8)}] Generated ${
-      newPlaylist.length
-    } playlist items`
-  );
+  log(`Generated ${newPlaylistItems.length} playlist items`);
 
   await sessionRef.update({
-    playlist: newPlaylist,
+    playlist: [...sessionData.playlist, ...newPlaylistItems],
   });
 
-  console.log(`[SID:${sessionId.slice(0, 8)}] Generating script...`);
+  log(`Generating script...`);
 
   const scriptDraft = await generateObject({
     model: openai("gpt-4.1"),
     prompt: generateScriptPrompt({
-      playlist: formatPlaylistAsString(newPlaylist, true),
-      language: "English",
+      playlist: formatPlaylistAsString(newPlaylistItems, true),
+      language: "Neutral Spanish",
     }),
     schema: z.object({
       script: z
@@ -140,11 +145,7 @@ export async function generateSessionQueue(sessionId: string) {
     }),
   });
 
-  console.log(
-    `[SID:${sessionId.slice(0, 8)}] Generated script with ${
-      scriptDraft.object.script.length
-    } items`
-  );
+  log(`Generated script with ${scriptDraft.object.script.length} items`);
 
   // Get the current queue
   const currentSessionQueue = await queueRef.get();
@@ -152,11 +153,7 @@ export async function generateSessionQueue(sessionId: string) {
     ? (currentSessionQueue.data() as SessionQueue).queue
     : [];
 
-  console.log(
-    `[SID:${sessionId.slice(0, 8)}] Current queue has ${
-      currentQueue.length
-    } items`
-  );
+  log(`Current queue has ${currentQueue.length} items`);
 
   // Create talkSegments for each segment in the script and build new queue items
   const newQueueItems: QueueItem[] = [];
@@ -175,6 +172,7 @@ export async function generateSessionQueue(sessionId: string) {
 
       await talkSegments.doc(segmentId).set({
         text: scriptItem.text,
+        language: sessionData.language,
       });
 
       console.log(
@@ -186,13 +184,13 @@ export async function generateSessionQueue(sessionId: string) {
         type: "segment",
         id: segmentId,
         audioUrl: `/api/playback/segment/${segmentId}`,
-        title: "DJ Commentary", // Optional title for segments
+        text: scriptItem.text,
       };
 
       newQueueItems.push(segmentItem);
     } else if (scriptItem.type === "song") {
       // Find the song in the newPlaylist by songId
-      const playlistItem = newPlaylist.find(
+      const playlistItem = newPlaylistItems.find(
         (item) => item.id === scriptItem.songId
       );
 
@@ -247,6 +245,7 @@ export async function generateSessionQueue(sessionId: string) {
   // Update the session queue in the database
   await queueRef.update({
     queue: updatedQueue,
+    extending: false,
   });
 
   console.log(
