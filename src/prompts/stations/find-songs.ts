@@ -13,11 +13,11 @@ In this scenario, you are doing a "deep dive". This means you are focusing on th
 
 ## Objective
 
-Search the internet to find 10 good songs to follow up, and thoroughly explain each choice in a single paragraph about 200 words long. Include interesting facts when relevant. Use diverse criteria such as artists and producers involved, genres, decades, influences, etc. Investigate what blogs and critics had to say about the music when it was released and in the present. Prioritize history, influences, critical reception and artists over the lyrical conent of the songs. 
+Search the internet to find {count} good songs to follow up, and thoroughly explain each choice in a single paragraph about 200 words long. Include interesting facts when relevant. Use diverse criteria such as artists and producers involved, genres, decades, influences, etc. Investigate what blogs and critics had to say about the music when it was released and in the present. Prioritize history, influences, critical reception and artists over the lyrical conent of the songs. 
 
 ## Notes
 
 - Make a selection where each song flows in some way with the next.
-- Avoid "closing" the playlist at no. 10. We will continue to add more songs.
+- Do not mention "closing" the playlist or segment. This is just one batch of songs. We will continue to add more songs.
 - Do not write any introductions or conclusions. Only do song + reasoning combos.
 `);

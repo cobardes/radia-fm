@@ -1,4 +1,3 @@
-import { langsmithClient } from "@/lib/langsmith";
 import { findSongsPromptTemplate } from "@/prompts/stations/find-songs";
 import { playlistDraftSchema, StationPlaylist } from "@/types/station";
 import { formatStationPlaylist, getMessageContentText } from "@/utils";
@@ -16,7 +15,8 @@ const structuredModel = new ChatGoogleGenerativeAI({
 }).withStructuredOutput(playlistDraftSchema);
 
 const _findMoreSongs = async (
-  playlist: StationPlaylist
+  playlist: StationPlaylist,
+  count: number = 10
 ): Promise<StationPlaylist> => {
   console.log(chalk.yellow("Finding more songs..."));
 
@@ -24,7 +24,9 @@ const _findMoreSongs = async (
     await findSongsPromptTemplate.invoke({
       playlist: formatStationPlaylist(playlist),
       artist: playlist[0].artist,
-    })
+      count,
+    }),
+    { runName: "find-more-songs" }
   );
 
   const playlistDraftText = getMessageContentText(playlistDraft.content);
@@ -36,7 +38,8 @@ const _findMoreSongs = async (
 
     Playlist:
     ${playlistDraftText}
-    `
+    `,
+    { runName: "structure-playlist-draft" }
   );
 
   console.log(chalk.green(`Structured playlist draft correctly.`));
@@ -49,5 +52,4 @@ const _findMoreSongs = async (
 
 export const findMoreSongs = traceable(_findMoreSongs, {
   name: "find-more-songs",
-  client: langsmithClient,
 });

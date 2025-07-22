@@ -22,7 +22,7 @@ export const extendStationQueue = traceable(
 
     const { playlist } = stationData;
 
-    const newPlaylistItems = await findMoreSongs(playlist);
+    const newPlaylistItems = await findMoreSongs(playlist, 15);
 
     // Update the station with the new songs
     await stations.doc(stationId).update({
