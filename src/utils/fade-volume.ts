@@ -7,16 +7,14 @@ export function fadeVolume(
   const startTime = performance.now();
   const volumeDiff = to - from;
 
-  function updateVolume() {
+  const interval = setInterval(() => {
     const elapsed = performance.now() - startTime;
     const progress = Math.min(elapsed / duration, 1);
 
     audioElement.volume = from + volumeDiff * progress;
 
-    if (progress < 1) {
-      requestAnimationFrame(updateVolume);
+    if (progress >= 1) {
+      clearInterval(interval);
     }
-  }
-
-  requestAnimationFrame(updateVolume);
+  }, 16); // ~60fps
 }
