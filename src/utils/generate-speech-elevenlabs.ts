@@ -19,8 +19,8 @@ const Voices: Record<
   "Neutral Spanish": {
     voiceId: "B10SmiMIwxTlneUpKPyE",
     voiceSettings: {
-      speed: 1.1,
-      stability: 0.75,
+      speed: 1,
+      stability: 0.3,
       similarityBoost: 0.5,
       useSpeakerBoost: true,
     },
