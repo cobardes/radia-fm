@@ -7,7 +7,6 @@ import Spinner from "./Spinner";
 interface RadioPlayerSegmentItemProps {
   item: StationQueueTalkSegment;
   index: number;
-  onLoad: (itemId: string) => void;
 }
 
 export const SEGMENT_ENDING_OFFSET_SECONDS = 1.5;
@@ -16,13 +15,15 @@ const BACKGROUND_FADE_IN_DURATION_MS = 2000;
 const BACKGROUND_FADE_OUT_DURATION_MS = 3000;
 const BACKGROUND_FADE_IN_VOLUME = 0.075;
 
-function RadioPlayerSegmentItem({
-  item,
-  index,
-  onLoad,
-}: RadioPlayerSegmentItemProps) {
-  const { currentItem, currentIndex, playNext, loadedItems, queue } =
-    useContext(RadioPlayerContext);
+function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
+  const {
+    currentItem,
+    currentIndex,
+    playNext,
+    loadedItems,
+    queue,
+    markItemAsLoaded,
+  } = useContext(RadioPlayerContext);
   const finished = useRef(false);
   const backgroundStarted = useRef(false);
   const backgroundFadedOut = useRef(false);
@@ -48,7 +49,7 @@ function RadioPlayerSegmentItem({
   })();
 
   const handleAudioLoaded = () => {
-    onLoad(item.id);
+    markItemAsLoaded(item.id);
   };
 
   const handleAudioProgress = (

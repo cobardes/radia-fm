@@ -1,106 +1,27 @@
-import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
-import { StationQueue } from "@/types/station";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRadioPlayer } from "@/contexts/RadioPlayerContext";
 import RadioPlayerSegmentItem from "./RadioPlayerSegmentItem";
 import RadioPlayerSongItem from "./RadioPlayerSongItem";
 
-interface RadioPlayerProps {
-  queue: StationQueue;
-  onReachingEnd?: () => void;
-}
-
-function RadioPlayer({ queue, onReachingEnd = () => null }: RadioPlayerProps) {
-  const [currentIndex, setCurrentIndex] = useState<number>(-1);
-  const [loadedItems, setLoadedItems] = useState<Set<string>>(new Set());
-  const currentItem = queue[currentIndex];
-
-  const isQueueValid = useMemo(() => {
-    return (
-      queue.length > 0 &&
-      queue[0].type === "talk" &&
-      queue[1].type === "song" &&
-      loadedItems.has(queue[0].id) &&
-      loadedItems.has(queue[1].id)
-    );
-  }, [queue, loadedItems]);
-
-  const markItemAsLoaded = useCallback((itemId: string) => {
-    setLoadedItems((prev) => new Set(prev).add(itemId));
-  }, []);
-
-  const playNext = useCallback(() => {
-    console.log("playNext called");
-
-    if (queue.length <= currentIndex + 1) return;
-    setCurrentIndex((prev) => prev + 1);
-  }, [queue, currentIndex]);
-
-  /* Initial playback */
-  useEffect(() => {
-    if (!isQueueValid) return;
-
-    if (currentIndex === -1) {
-      setCurrentIndex(0);
-    }
-  }, [currentIndex, isQueueValid]);
-
-  useEffect(() => {
-    if (currentIndex >= queue.length - 2) {
-      onReachingEnd();
-    }
-  }, [currentIndex, queue, onReachingEnd]);
-
-  const handleItemLoad = useCallback(
-    (itemId: string) => {
-      markItemAsLoaded(itemId);
-    },
-    [markItemAsLoaded]
-  );
+function RadioPlayer() {
+  const { queue } = useRadioPlayer();
 
   return (
-    <RadioPlayerContext.Provider
-      value={{
-        queue,
-        currentIndex,
-        currentItem,
-        loadedItems,
-        markItemAsLoaded,
-        playNext,
-      }}
-    >
-      <button
-        className="text-blue-500 hover:text-blue-600 text-sm underline"
-        onClick={() => playNext()}
-      >
-        Play Next
-      </button>
-      <div className="flex flex-col gap-8">
-        {queue.map((item, index) => {
-          switch (item.type) {
-            case "song":
-              return (
-                <RadioPlayerSongItem
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  onLoad={handleItemLoad}
-                />
-              );
-            case "talk":
-              return (
-                <RadioPlayerSegmentItem
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  onLoad={handleItemLoad}
-                />
-              );
-            default:
-              return null;
-          }
-        })}
-      </div>
-    </RadioPlayerContext.Provider>
+    <div className="hidden">
+      {queue.map((item, index) => {
+        switch (item.type) {
+          case "song":
+            return (
+              <RadioPlayerSongItem key={item.id} item={item} index={index} />
+            );
+          case "talk":
+            return (
+              <RadioPlayerSegmentItem key={item.id} item={item} index={index} />
+            );
+          default:
+            return null;
+        }
+      })}
+    </div>
   );
 }
 

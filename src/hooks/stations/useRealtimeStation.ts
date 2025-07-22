@@ -5,7 +5,14 @@ import { Station } from "@/types/station";
 import { doc, onSnapshot } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
 
-export function useRealtimeStation(stationId: string | null) {
+export interface RealtimeStation {
+  station: Station | null;
+  extend: () => Promise<void>;
+  loading: boolean;
+  error: string | null;
+}
+
+export function useRealtimeStation(stationId: string | null): RealtimeStation {
   const [station, setStation] = useState<Station | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

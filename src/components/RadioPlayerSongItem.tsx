@@ -1,6 +1,7 @@
 import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
 import { StationQueueSong } from "@/types/station";
 import { fadeVolume } from "@/utils/fade-volume";
+import { getThumbnailUrl } from "@/utils/get-thumbnail-url";
 import Image from "next/image";
 import { useContext, useEffect, useRef } from "react";
 import { SEGMENT_ENDING_OFFSET_SECONDS } from "./RadioPlayerSegmentItem";
@@ -14,7 +15,6 @@ const SONG_ENDING_OFFSET_SECONDS = 2;
 interface RadioPlayerSongItemProps {
   item: StationQueueSong;
   index: number;
-  onLoad: (itemId: string) => void;
 }
 
 const isPlaying = (audio: HTMLAudioElement) =>
@@ -25,13 +25,15 @@ const isPlaying = (audio: HTMLAudioElement) =>
     audio.readyState > 2
   );
 
-function RadioPlayerSongItem({
-  item,
-  index,
-  onLoad,
-}: RadioPlayerSongItemProps) {
-  const { currentItem, currentIndex, playNext, loadedItems, queue } =
-    useContext(RadioPlayerContext);
+function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
+  const {
+    currentItem,
+    currentIndex,
+    playNext,
+    loadedItems,
+    queue,
+    markItemAsLoaded,
+  } = useContext(RadioPlayerContext);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const finished = useRef(false);
@@ -41,7 +43,7 @@ function RadioPlayerSongItem({
   const shouldRenderAudio = currentIndex >= index - 2;
 
   const handleAudioLoaded = () => {
-    onLoad(item.id);
+    markItemAsLoaded(item.id);
   };
 
   const handleAudioProgress = (
@@ -103,9 +105,7 @@ function RadioPlayerSongItem({
     >
       <div className="flex items-center gap-2">
         <Image
-          src={`https://wsrv.nl/?url=${encodeURIComponent(
-            `https://img.youtube.com/vi/${item.id}/maxresdefault.jpg`
-          )}&width=300&height=300&fit=cover`}
+          src={getThumbnailUrl(item.id)}
           alt={item.title}
           width={300}
           height={300}
