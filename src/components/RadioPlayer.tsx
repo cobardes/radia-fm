@@ -1,11 +1,11 @@
 import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
-import { QueueItem } from "@/types";
+import { StationQueue } from "@/types/station";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import RadioPlayerSegmentItem from "./RadioPlayerSegmentItem";
 import RadioPlayerSongItem from "./RadioPlayerSongItem";
 
 interface RadioPlayerProps {
-  queue: QueueItem[];
+  queue: StationQueue;
   onPlaybackReady?: () => void;
 }
 
@@ -20,7 +20,7 @@ function RadioPlayer({
   const isQueueValid = useMemo(() => {
     return (
       queue.length > 0 &&
-      queue[0].type === "segment" &&
+      queue[0].type === "talk" &&
       queue[1].type === "song" &&
       loadedItems.has(queue[0].id) &&
       loadedItems.has(queue[1].id)
@@ -84,7 +84,7 @@ function RadioPlayer({
                   onLoad={handleItemLoad}
                 />
               );
-            case "segment":
+            case "talk":
               return (
                 <RadioPlayerSegmentItem
                   key={item.id}

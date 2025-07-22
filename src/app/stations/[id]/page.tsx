@@ -1,8 +1,10 @@
 "use client";
 
+import RadioPlayer from "@/components/RadioPlayer";
 import { useRealtimeStation } from "@/hooks/stations/useRealtimeStation";
 import { Station } from "@/types/station";
 import { useParams } from "next/navigation";
+import { useCallback } from "react";
 import { FadeLoader } from "react-spinners";
 
 export default function StationPage() {
@@ -19,6 +21,12 @@ export default function StationPage() {
 }
 
 function StationInfo({ station }: { station: Station }) {
+  const extendStationQueue = useCallback(async () => {
+    await fetch(`/api/stations/extend/${station.id}`, {
+      method: "POST",
+    });
+  }, [station.id]);
+
   return (
     <div className="flex flex-col gap-4">
       {station.isExtending && (
@@ -27,24 +35,19 @@ function StationInfo({ station }: { station: Station }) {
           <FadeLoader color="#777" />
         </div>
       )}
+      <button onClick={() => extendStationQueue()}>Extend</button>
+      <RadioPlayer queue={station.queue} />
       <h1>Playlist</h1>
       {station.playlist.map((item) => (
         <div key={item.id}>
           <p>
-            {item.title} - {item.artist}
+            **{item.title}** - {item.artist}
           </p>
           <p className="text-sm text-gray-500">{item.reason}</p>
-          <div>
-            {item.isInScript ? (
-              <p className="text-sm text-green-500">In script</p>
-            ) : (
-              <p className="text-sm text-red-500">Not in script</p>
-            )}
-          </div>
         </div>
       ))}
       <h1>Script</h1>
-      {station.script.map((item) => (
+      {station.queue.map((item) => (
         <div key={item.id}>
           {item.type === "song" && (
             <>

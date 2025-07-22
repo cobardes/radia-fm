@@ -1,5 +1,5 @@
 import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
-import { SongItem } from "@/types";
+import { StationQueueSong } from "@/types/station";
 import { fadeVolume } from "@/utils/fade-volume";
 import Image from "next/image";
 import { useContext, useEffect, useRef } from "react";
@@ -12,7 +12,7 @@ const FADE_DURATION = 1000;
 const SONG_ENDING_OFFSET_SECONDS = 1;
 
 interface RadioPlayerSongItemProps {
-  item: SongItem;
+  item: StationQueueSong;
   index: number;
   onLoad: (itemId: string) => void;
 }
@@ -103,11 +103,13 @@ function RadioPlayerSongItem({
     >
       <div className="flex items-center gap-2">
         <Image
-          src={item.thumbnail ?? ""}
+          src={`https://wsrv.nl/?url=${encodeURIComponent(
+            `https://img.youtube.com/vi/${item.id}/maxresdefault.jpg`
+          )}&width=300&height=300&fit=cover`}
           alt={item.title}
-          width={40}
-          height={40}
-          className="rounded-md bg-gray-200"
+          width={300}
+          height={300}
+          className="rounded-md bg-gray-200 w-10"
         />
         <div className="flex flex-col">
           <div
@@ -117,7 +119,7 @@ function RadioPlayerSongItem({
           >
             {item.title}
           </div>
-          <div className="text-sm text-gray-500">{item.artists.join(", ")}</div>
+          <div className="text-sm text-gray-500">{item.artist}</div>
         </div>
         {!isLoaded && shouldRenderAudio && <Spinner color="#666" size={20} />}
       </div>

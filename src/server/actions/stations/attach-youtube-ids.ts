@@ -26,7 +26,6 @@ const _attachYoutubeIds = async (
           title: firstSong.title,
           artist: firstSong.artists.join(", "),
           reason: item.reason,
-          isInScript: false,
         };
         console.log(
           chalk.green(

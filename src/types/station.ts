@@ -5,8 +5,9 @@ export type StationLanguage = "British English" | "Chilean Spanish";
 export interface Station {
   id: string;
   playlist: StationPlaylist;
-  script: StationScript;
+  queue: StationQueue;
   isExtending: boolean;
+  language: StationLanguage;
   createdAt: string;
 }
 
@@ -17,7 +18,6 @@ export interface StationPlaylistItem {
   title: string;
   artist: string;
   reason: string;
-  isInScript: boolean;
 }
 
 export const playlistDraftSchema = z.object({
@@ -37,21 +37,22 @@ export type PlaylistDraftItem = z.infer<
   typeof playlistDraftSchema.shape.playlist
 >[number];
 
-export type StationScript = StationScriptItem[];
+export type StationQueue = StationQueueItem[];
 
-export interface StationScriptSong {
+export interface StationQueueSong {
   id: string;
   type: "song";
   title: string;
   artist: string;
+  reason: string;
   audioUrl: string;
 }
 
-export interface StationScriptTalkSegment {
+export interface StationQueueTalkSegment {
   id: string;
   type: "talk";
   text: string;
   audioUrl: string;
 }
 
-export type StationScriptItem = StationScriptSong | StationScriptTalkSegment;
+export type StationQueueItem = StationQueueSong | StationQueueTalkSegment;

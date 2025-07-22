@@ -1,4 +1,4 @@
-import { talkSegments } from "@/server/db";
+import { speeches } from "@/server/db";
 import { generateSpeech } from "@/utils/generate-speech";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ error: "id is required" }, { status: 400 });
     }
 
-    const segment = await talkSegments.doc(id).get();
+    const segment = await speeches.doc(id).get();
     const segmentData = segment.data();
 
     if (!segment.exists || !segmentData?.text) {

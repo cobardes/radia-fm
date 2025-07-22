@@ -10,12 +10,12 @@ import { speeches, stations } from "@/server/db";
 import {
   Station,
   StationLanguage,
-  StationScriptTalkSegment,
+  StationQueueTalkSegment,
 } from "@/types/station";
 import { getMessageContentText } from "@/utils";
 import { ChatOpenAI } from "@langchain/openai";
 import chalk from "chalk";
-import { extendStation } from "./extend-station";
+import { extendStationQueue } from "./extend-station-queue";
 
 const groundedFlashModel = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
@@ -37,8 +37,8 @@ const _createStation = async (
     throw new Error("Valid initialSong is required");
   }
 
-  const stationId = randomUUID();
-  const greetingSegmentId = randomUUID();
+  const stationId = randomUUID().slice(0, 8);
+  const greetingSegmentId = randomUUID().slice(0, 8);
 
   console.log(chalk.yellow("Researching initial song..."));
 
@@ -75,7 +75,7 @@ const _createStation = async (
   const speechUrl = `/api/playback/segment/${greetingSegmentId}`;
   const songUrl = `/api/playback/song/${initialSong.id}`;
 
-  const greetingSegment: StationScriptTalkSegment = {
+  const greetingSegment: StationQueueTalkSegment = {
     id: greetingSegmentId,
     type: "talk",
     text: greeting.content.toString(),
@@ -90,27 +90,28 @@ const _createStation = async (
         title: initialSong.title,
         artist: initialSong.artists[0],
         reason: `This song was selected by the user. ${initialSongInfoText}`,
-        isInScript: true,
       },
     ],
-    script: [
+    queue: [
       greetingSegment,
       {
         type: "song",
         id: initialSong.id,
         title: initialSong.title,
         artist: initialSong.artists[0],
+        reason: `This song was selected by the user. ${initialSongInfoText}`,
         audioUrl: songUrl,
       },
     ],
     isExtending: false,
+    language,
     createdAt: new Date().toISOString(),
   };
 
   await stations.doc(stationId).set(initialStation);
 
   // Extend station asynchronously
-  void extendStation(stationId);
+  void extendStationQueue(stationId);
 
   return stationId;
 };

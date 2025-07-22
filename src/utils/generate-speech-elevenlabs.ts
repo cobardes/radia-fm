@@ -6,17 +6,17 @@ const elevenlabs = new ElevenLabsClient({
   apiKey: process.env.ELEVENLABS_API_KEY || "",
 });
 
-import { TalkSegmentLanguage } from "@/types";
+import { StationLanguage } from "@/types/station";
 import { TextToSpeechRequest } from "@elevenlabs/elevenlabs-js/api";
 
 const Voices: Record<
-  TalkSegmentLanguage,
+  StationLanguage,
   {
     voiceId: string;
     voiceSettings: TextToSpeechRequest["voiceSettings"];
   }
 > = {
-  "Neutral Spanish": {
+  "Chilean Spanish": {
     voiceId: "B10SmiMIwxTlneUpKPyE",
     voiceSettings: {
       speed: 1.1,
@@ -37,7 +37,7 @@ const Voices: Record<
 
 export async function generateSpeech(
   prompt: string,
-  language: TalkSegmentLanguage
+  language: StationLanguage
 ): Promise<ReadableStream<Uint8Array>> {
   const { voiceId, voiceSettings } = Voices[language];
 
@@ -54,7 +54,7 @@ export async function generateSpeech(
 // Helper function to convert stream to buffer if needed for compatibility
 export async function generateSpeechBuffer(
   prompt: string,
-  language: TalkSegmentLanguage
+  language: StationLanguage
 ): Promise<Buffer> {
   const stream = await generateSpeech(prompt, language);
 

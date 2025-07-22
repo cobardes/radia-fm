@@ -1,4 +1,4 @@
-import { QueueItem } from "@/types";
+import { StationQueue, StationQueueItem } from "@/types/station";
 import { createContext } from "react";
 
 export const RadioPlayerContext = createContext<RadioPlayerContextType>({
@@ -11,9 +11,9 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
 });
 
 interface RadioPlayerContextType {
-  queue: QueueItem[];
+  queue: StationQueue;
   currentIndex: number;
-  currentItem: QueueItem | null;
+  currentItem: StationQueueItem | null;
   loadedItems: Set<string>;
   markItemAsLoaded: (itemId: string) => void;
   playNext: () => void;

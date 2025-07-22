@@ -1,6 +1,6 @@
 "use server";
 
-import { TalkSegmentLanguage } from "@/types";
+import { StationLanguage } from "@/types/station";
 import { GoogleGenAI } from "@google/genai";
 import mime from "mime";
 import { convertToMp3 } from "./mp3-converter";
@@ -13,7 +13,7 @@ interface GenerateSpeechOptions {
 
 export async function generateSpeech(
   prompt: string,
-  language: TalkSegmentLanguage,
+  language: StationLanguage,
   options: GenerateSpeechOptions = {}
 ): Promise<ReadableStream<Uint8Array>> {
   const buffer = await generateSpeechBuffer(prompt, language, options);
@@ -30,10 +30,10 @@ export async function generateSpeech(
 // Helper function to generate speech as buffer (main implementation)
 export async function generateSpeechBuffer(
   prompt: string,
-  language: TalkSegmentLanguage,
+  language: StationLanguage,
   options: GenerateSpeechOptions = {}
 ): Promise<Buffer> {
-  const { temperature = 1, voiceName = "Achernar" } = options;
+  const { temperature = 1, voiceName = "Sadachbia" } = options;
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
@@ -51,19 +51,17 @@ export async function generateSpeechBuffer(
     },
   };
 
-  const model = "gemini-2.5-pro-preview-tts";
+  const model = "gemini-2.5-flash-preview-tts";
   const contents = [
     {
       role: "user" as const,
       parts: [
         {
-          text: `You are an indie radio DJ. You have a deep knowledge of the subject, but speak in a friendly and casual manner, like telling a story to a friend. You aim for a lower, smooth voice that's ideal for the radio. You speak fairly fast, to keep up with the pace of a radio broadcast. You have a thick British accent. ${
-            language === "British English"
-              ? "Use a noticeable British accent."
-              : ""
-          } Read the following segment:
+          text: `Speak in a serious but casual manner, like giving a lecture. You have a smooth voice. Speak fast but keep the enthusiasm down. You have a ${language} accent. Lower your pitch. Read the following segment:
 
-          ${prompt}`,
+          ${prompt}
+          
+          (brief silence)`,
         },
       ],
     },

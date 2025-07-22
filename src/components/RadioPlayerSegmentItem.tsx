@@ -1,11 +1,11 @@
 import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
-import { SegmentItem, SongItem } from "@/types";
+import { StationQueueSong, StationQueueTalkSegment } from "@/types/station";
 import { fadeVolume } from "@/utils/fade-volume";
 import { useContext, useEffect, useRef } from "react";
 import Spinner from "./Spinner";
 
 interface RadioPlayerSegmentItemProps {
-  item: SegmentItem;
+  item: StationQueueTalkSegment;
   index: number;
   onLoad: (itemId: string) => void;
 }
@@ -39,7 +39,7 @@ function RadioPlayerSegmentItem({
     for (let i = index - 1; i >= 0; i--) {
       const queueItem = queue[i];
       if (queueItem?.type === "song") {
-        return queueItem as SongItem;
+        return queueItem as StationQueueSong;
       }
     }
     return null;

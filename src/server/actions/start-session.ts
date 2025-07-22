@@ -26,9 +26,8 @@ const _startSession = async (
     throw new Error("Valid seedSong is required");
   }
 
-  const sessionId = randomUUID();
-
-  const greetingSegmentId = randomUUID();
+  const sessionId = randomUUID().slice(0, 8);
+  const greetingSegmentId = randomUUID().slice(0, 8);
 
   console.log(`[SID:${sessionId.slice(0, 8)}] Generating greeting...`);
 
