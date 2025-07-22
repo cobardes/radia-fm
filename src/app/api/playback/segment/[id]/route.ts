@@ -1,5 +1,5 @@
 import { speeches } from "@/server/db";
-import { generateSpeech } from "@/utils/generate-speech";
+import { generateSpeech } from "@/utils/generate-speech-elevenlabs";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
