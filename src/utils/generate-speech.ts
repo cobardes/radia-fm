@@ -27,13 +27,18 @@ export async function generateSpeech(
   });
 }
 
+const Voices: Record<StationLanguage, string> = {
+  "British English": "Despina",
+  "Neutral Spanish": "Despina",
+};
+
 // Helper function to generate speech as buffer (main implementation)
 export async function generateSpeechBuffer(
   prompt: string,
   language: StationLanguage,
   options: GenerateSpeechOptions = {}
 ): Promise<Buffer> {
-  const { temperature = 1, voiceName = "Sadachbia" } = options;
+  const { temperature = 1, voiceName = Voices[language] } = options;
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
@@ -51,17 +56,20 @@ export async function generateSpeechBuffer(
     },
   };
 
-  const model = "gemini-2.5-pro-preview-tts";
+  const model = "gemini-2.5-flash-preview-tts";
   const contents = [
     {
       role: "user" as const,
       parts: [
         {
-          text: `Speak in a serious but casual manner, like giving a lecture. You have a smooth voice. Speak fast but keep the enthusiasm down. You have a ${language} accent. Lower your pitch. Read the following segment:
+          text: `Speak in a serious but casual manner, like giving a lecture. You have a smooth voice. Lower your pitch. You have a ${
+            language.split(" ")[0]
+          } accent. Speak fast! Read the following segment:
 
           ${prompt}
           
-          (brief silence)`,
+          (brief silence)
+          (Remember you have a ${language.split(" ")[0]} accent.)`,
         },
       ],
     },

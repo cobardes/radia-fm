@@ -16,20 +16,21 @@ const Voices: Record<
     voiceSettings: TextToSpeechRequest["voiceSettings"];
   }
 > = {
-  "Chilean Spanish": {
+  "Neutral Spanish": {
     voiceId: "B10SmiMIwxTlneUpKPyE",
     voiceSettings: {
       speed: 1.1,
-      stability: 0.25,
+      stability: 0.75,
       similarityBoost: 0.5,
+      useSpeakerBoost: true,
     },
   },
   "British English": {
-    voiceId: "8Ol13ghALtr4tWI7wPIz",
+    voiceId: "nrD2uNU2IUYtedZegcGx",
     voiceSettings: {
-      speed: 1.15,
-      stability: 0.2,
-      similarityBoost: 0.75,
+      speed: 1.1,
+      stability: 0.5,
+      similarityBoost: 0.5,
       useSpeakerBoost: true,
     },
   },
@@ -43,8 +44,8 @@ export async function generateSpeech(
 
   const audio = await elevenlabs.textToSpeech.convert(voiceId, {
     text: prompt,
-    modelId: "eleven_multilingual_v2",
-    outputFormat: "mp3_44100_128",
+    modelId: "eleven_turbo_v2_5",
+    outputFormat: "mp3_44100_192",
     voiceSettings,
   });
 
