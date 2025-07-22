@@ -1,7 +1,9 @@
 "use server";
 
 import { Song } from "@/types";
+import { faker } from "@faker-js/faker";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { kebabCase } from "change-case";
 import { randomUUID } from "crypto";
 import { traceable } from "langsmith/traceable";
 
@@ -13,7 +15,6 @@ import {
   StationQueueTalkSegment,
 } from "@/types/station";
 import { getMessageContentText } from "@/utils";
-import { ChatOpenAI } from "@langchain/openai";
 import chalk from "chalk";
 import { extendStationQueue } from "./extend-station-queue";
 
@@ -25,8 +26,9 @@ const groundedFlashModel = new ChatGoogleGenerativeAI({
   },
 ]);
 
-const greetingModel = new ChatOpenAI({
-  model: "gpt-4.1-mini",
+const greetingModel = new ChatGoogleGenerativeAI({
+  model: "gemini-2.5-flash",
+  temperature: 1.5,
 });
 
 const _createStation = async (
@@ -37,7 +39,8 @@ const _createStation = async (
     throw new Error("Valid initialSong is required");
   }
 
-  const stationId = randomUUID().slice(0, 8);
+  const stationId = kebabCase(faker.word.words(3));
+
   const greetingSegmentId = randomUUID().slice(0, 8);
 
   console.log(chalk.yellow("Researching initial song..."));

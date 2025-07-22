@@ -6,14 +6,14 @@ import {
   StationQueueSong,
   StationQueueTalkSegment,
 } from "@/types/station";
-import { formatStationQueue } from "@/utils";
-import { ChatOpenAI } from "@langchain/openai";
+import { formatStationPlaylist, formatStationQueue } from "@/utils";
+import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import chalk from "chalk";
 import { randomUUID } from "crypto";
 import { traceable } from "langsmith/traceable";
 
-const model = new ChatOpenAI({
-  model: "gpt-4.1",
+const model = new ChatGoogleGenerativeAI({
+  model: "gemini-2.5-pro",
 });
 
 const randomFromArray = <T>(array: T[]): T => {
@@ -66,9 +66,10 @@ const generateNextSegment = traceable(
     const nextSegment = await model.invoke(
       await generateTalkSegmentPromptTemplate.invoke({
         previouslyPlayed,
-        upcomingSongs,
+        upcomingSongs: formatStationPlaylist(upcomingSongs),
         language,
-      })
+      }),
+      { runName: "generate-talk-segment" }
     );
 
     const newSegmentId = randomUUID().slice(0, 8);
