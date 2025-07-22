@@ -29,12 +29,26 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
   handlePlaybackError: () => {},
 });
 
+async function canAutoplayAudio() {
+  const audio = new Audio();
+  audio.src =
+    "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="; // silent audio
+  audio.muted = true;
+
+  try {
+    await audio.play();
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
 export const useRadioPlayerContextValue = (
   realtimeStation: RealtimeStation
 ) => {
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const [loadedItems, setLoadedItems] = useState<Set<string>>(new Set());
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [autoplayAllowed, setAutoplayAllowed] = useState<boolean>(false);
 
   const { station, extend } = realtimeStation;
 
@@ -71,9 +85,14 @@ export const useRadioPlayerContextValue = (
     if (!isQueueValid) return;
 
     if (currentIndex === -1) {
-      setCurrentIndex(0);
+      /* Do not autoplay if the user has not interacted with the page */
+      canAutoplayAudio().then((allowed) => {
+        console.log("autoplay allowed", allowed);
+        setAutoplayAllowed(allowed);
+        if (allowed) playNext();
+      });
     }
-  }, [currentIndex, isQueueValid]);
+  }, [currentIndex, isQueueValid, playNext]);
 
   useEffect(() => {
     if (currentIndex >= queue.length - 2) {
@@ -89,8 +108,7 @@ export const useRadioPlayerContextValue = (
     markItemAsLoaded,
     playNext,
     handlePlaybackError,
-    isPlaying,
-    setIsPlaying,
+    autoplayAllowed,
   };
 };
 

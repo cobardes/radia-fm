@@ -16,6 +16,10 @@ export default function StationPage() {
 
   const contextValue = useRadioPlayerContextValue(realtimeStation);
 
+  if (realtimeStation.loading) {
+    return <div>Loading...</div>;
+  }
+
   if (!realtimeStation.station) {
     return <div>Station not found</div>;
   }
