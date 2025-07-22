@@ -3,12 +3,19 @@
 import { db } from "@/lib/firebase";
 import { Station } from "@/types/station";
 import { doc, onSnapshot } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function useRealtimeStation(stationId: string | null) {
   const [station, setStation] = useState<Station | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const extend = useCallback(async () => {
+    if (!station) return;
+    await fetch(`/api/stations/extend/${station.id}`, {
+      method: "POST",
+    });
+  }, [station]);
 
   useEffect(() => {
     if (!stationId) {
@@ -47,6 +54,7 @@ export function useRealtimeStation(stationId: string | null) {
 
   return {
     station,
+    extend,
     loading,
     error,
   };
