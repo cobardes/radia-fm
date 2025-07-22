@@ -1,8 +1,6 @@
 "use server";
 
-import { langsmithClient } from "@/lib/langsmith";
 import { Song } from "@/types";
-import { type MessageContentText } from "@langchain/core/messages";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { randomUUID } from "crypto";
 import { traceable } from "langsmith/traceable";
@@ -14,8 +12,10 @@ import {
   StationLanguage,
   StationScriptTalkSegment,
 } from "@/types/station";
+import { getMessageContentText } from "@/utils";
 import { ChatOpenAI } from "@langchain/openai";
 import chalk from "chalk";
+import { extendStation } from "./extend-station";
 
 const groundedFlashModel = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
@@ -49,17 +49,9 @@ const _createStation = async (
     { runName: "get-initial-song-info" }
   );
 
-  const initialSongInfoText =
-    typeof initialSongInfo.content === "string"
-      ? initialSongInfo.content
-      : (
-          initialSongInfo.content.findLast(
-            (content) => content.type === "text"
-          ) as MessageContentText
-        )?.text;
+  const initialSongInfoText = getMessageContentText(initialSongInfo.content);
 
   console.log(chalk.green(`Found initial song info: ${initialSongInfoText}`));
-
   console.log(chalk.yellow("Generating greeting..."));
 
   const greeting = await greetingModel.invoke(
@@ -85,7 +77,7 @@ const _createStation = async (
 
   const greetingSegment: StationScriptTalkSegment = {
     id: greetingSegmentId,
-    type: "talk_segment",
+    type: "talk",
     text: greeting.content.toString(),
     audioUrl: speechUrl,
   };
@@ -95,23 +87,20 @@ const _createStation = async (
     playlist: [
       {
         id: initialSong.id,
-        song: initialSong,
+        title: initialSong.title,
+        artist: initialSong.artists[0],
         reason: `This song was selected by the user. ${initialSongInfoText}`,
         isInScript: true,
       },
     ],
     script: [
+      greetingSegment,
       {
         type: "song",
         id: initialSong.id,
-        song: initialSong,
+        title: initialSong.title,
+        artist: initialSong.artists[0],
         audioUrl: songUrl,
-      },
-      {
-        type: "talk_segment",
-        id: greetingSegmentId,
-        text: greetingSegment.text,
-        audioUrl: speechUrl,
       },
     ],
     isExtending: false,
@@ -120,8 +109,8 @@ const _createStation = async (
 
   await stations.doc(stationId).set(initialStation);
 
-  // Flush traces to LangSmith
-  await langsmithClient.awaitPendingTraceBatches();
+  // Extend station asynchronously
+  void extendStation(stationId);
 
   return stationId;
 };
