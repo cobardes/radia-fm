@@ -6,10 +6,10 @@ import { useContext, useEffect, useRef } from "react";
 import { SEGMENT_ENDING_OFFSET_SECONDS } from "./RadioPlayerSegmentItem";
 import Spinner from "./Spinner";
 
-const INITIAL_VOLUME = 0.35;
-const TARGET_VOLUME = 0.75;
+const INITIAL_VOLUME = 0.15;
+const TARGET_VOLUME = 0.6;
 const FADE_DURATION = 1000;
-const SONG_ENDING_OFFSET_SECONDS = 1;
+const SONG_ENDING_OFFSET_SECONDS = 2;
 
 interface RadioPlayerSongItemProps {
   item: StationQueueSong;
@@ -51,7 +51,7 @@ function RadioPlayerSongItem({
 
     const audio = event.target as HTMLAudioElement;
 
-    if (audio.currentTime > audio.duration - SONG_ENDING_OFFSET_SECONDS) {
+    if (audio.currentTime >= audio.duration - SONG_ENDING_OFFSET_SECONDS) {
       finished.current = true;
       playNext();
     }

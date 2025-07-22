@@ -10,11 +10,11 @@ interface RadioPlayerSegmentItemProps {
   onLoad: (itemId: string) => void;
 }
 
-export const SEGMENT_ENDING_OFFSET_SECONDS = 0;
+export const SEGMENT_ENDING_OFFSET_SECONDS = 1.5;
 
 const BACKGROUND_FADE_IN_DURATION_MS = 2000;
 const BACKGROUND_FADE_OUT_DURATION_MS = 3000;
-const BACKGROUND_FADE_IN_VOLUME = 0.05;
+const BACKGROUND_FADE_IN_VOLUME = 0.075;
 
 function RadioPlayerSegmentItem({
   item,
@@ -29,6 +29,8 @@ function RadioPlayerSegmentItem({
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const backgroundRef = useRef<HTMLAudioElement>(null);
+
+  const mainAudioTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isActive = currentItem?.id === item.id;
   const isLoaded = loadedItems.has(item.id);
@@ -93,7 +95,7 @@ function RadioPlayerSegmentItem({
       backgroundFadedOut.current = false;
 
       // Start background music immediately if we have a previous song
-      if (backgroundRef.current && previousSong) {
+      if (backgroundRef.current && previousSong && !backgroundStarted.current) {
         backgroundStarted.current = true;
 
         // Set initial volume to 0
@@ -116,9 +118,9 @@ function RadioPlayerSegmentItem({
       }
 
       // Start the main audio (talk segment) after 1 second delay
-      setTimeout(() => {
+      mainAudioTimeoutRef.current = setTimeout(() => {
         if (audioRef.current) {
-          audioRef.current.volume = 0.75;
+          audioRef.current.volume = 1;
           audioRef.current.play();
         }
       }, 1500);
@@ -130,6 +132,9 @@ function RadioPlayerSegmentItem({
       finished.current = true;
       audioRef.current?.pause();
       backgroundRef.current?.pause();
+      if (mainAudioTimeoutRef.current) {
+        clearTimeout(mainAudioTimeoutRef.current);
+      }
     }
   }, [currentIndex, index]);
 
@@ -153,6 +158,7 @@ function RadioPlayerSegmentItem({
             ref={audioRef}
             src={item.audioUrl}
             onCanPlay={handleAudioLoaded}
+            onCanPlayThrough={handleAudioLoaded}
             onTimeUpdate={handleAudioProgress}
             autoPlay={false}
             controls={true}
