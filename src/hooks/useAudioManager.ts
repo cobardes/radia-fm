@@ -99,6 +99,8 @@ export const useAudioManager = ({
       masterGainRef.current = masterGain;
 
       setIsSupported(true);
+
+      console.log("AudioContext initialized after user interaction");
     } catch (error) {
       console.warn("Web Audio API not supported:", error);
       setIsSupported(false);
@@ -109,8 +111,13 @@ export const useAudioManager = ({
   // Connects an HTML audio element to our Web Audio API processing chain
   const registerAudioElement = useCallback(
     (id: string, audioElement: HTMLAudioElement) => {
+      // Initialize audio context on first registration (after user interaction)
+      if (!audioContextRef.current) {
+        initializeAudioContext();
+      }
+
       if (!audioContextRef.current || !masterGainRef.current) {
-        return; // Audio context not ready
+        return; // Audio context still not ready
       }
 
       // Check if this exact element is already registered
@@ -160,7 +167,7 @@ export const useAudioManager = ({
         console.warn(`Failed to register audio element ${id}:`, error);
       }
     },
-    []
+    [initializeAudioContext]
   );
 
   // Removes an audio element from our processing chain
@@ -375,16 +382,29 @@ export const useAudioManager = ({
   // VISUALIZATION CONTROL
   // Starts the visualization data extraction loop
   const startVisualization = useCallback(() => {
+    // Initialize audio context if not already done
+    if (!audioContextRef.current) {
+      initializeAudioContext();
+    }
+
     if (!analyserRef.current || animationIdRef.current) return; // Already running or not ready
 
     // Resume audio context if suspended (required by browser autoplay policies)
     if (audioContextRef.current?.state === "suspended") {
-      audioContextRef.current.resume();
+      console.log("Resuming suspended AudioContext");
+      audioContextRef.current
+        .resume()
+        .then(() => {
+          console.log("AudioContext resumed successfully");
+        })
+        .catch((error) => {
+          console.warn("Failed to resume AudioContext:", error);
+        });
     }
 
     // Start the animation loop
     updateVisualizerData();
-  }, [updateVisualizerData]);
+  }, [updateVisualizerData, initializeAudioContext]);
 
   // Stops the visualization data extraction loop
   const stopVisualization = useCallback(() => {
@@ -396,10 +416,10 @@ export const useAudioManager = ({
   }, []);
 
   // LIFECYCLE EFFECTS
-  // Initialize audio context when component mounts
-  useEffect(() => {
-    initializeAudioContext();
-  }, [initializeAudioContext]);
+  // Don't initialize audio context on mount - wait for user interaction
+  // useEffect(() => {
+  //   initializeAudioContext();
+  // }, [initializeAudioContext]);
 
   // Cleanup when component unmounts
   useEffect(() => {
@@ -438,6 +458,7 @@ export const useAudioManager = ({
     unregisterAudioElement, // Disconnect an HTML audio element
     setAudioElementActive, // Mark an audio element as active/inactive
     audioContext: audioContextRef.current, // Raw audio context (advanced use)
+    initializeAudioContext, // Manually initialize audio context after user interaction
 
     // Loudness normalization functions
     startLoudnessAnalysis, // Start analyzing loudness for an audio element

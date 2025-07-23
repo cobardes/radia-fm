@@ -36,6 +36,7 @@ interface RadioPlayerContextType {
     registerAudioElement: (id: string, audioElement: HTMLAudioElement) => void;
     unregisterAudioElement: (id: string) => void;
     setAudioElementActive: (id: string, isActive: boolean) => void;
+    initializeAudioContext: () => void;
     // Loudness normalization functions
     startLoudnessAnalysis: (elementId: string) => void;
     stopLoudnessAnalysis: (elementId: string) => void;
@@ -70,6 +71,7 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
     registerAudioElement: () => {},
     unregisterAudioElement: () => {},
     setAudioElementActive: () => {},
+    initializeAudioContext: () => {},
     startLoudnessAnalysis: () => {},
     stopLoudnessAnalysis: () => {},
     getLoudnessAnalysis: () => null,
