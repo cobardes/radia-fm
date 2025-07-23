@@ -1,6 +1,8 @@
 import { createStation } from "@/server/actions/stations/create-station";
+import { stations } from "@/server/db";
 import { BaseErrorResponse, Song } from "@/types";
-import { StationLanguage } from "@/types/station";
+import { Station, StationLanguage } from "@/types/station";
+import { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { NextRequest, NextResponse } from "next/server";
 
 export interface CreateStationRequest {
@@ -14,10 +16,40 @@ export interface CreateStationSuccessResponse {
 
 export type CreateStationErrorResponse = BaseErrorResponse;
 
+export interface RecentStationsResponse {
+  stations: Station[];
+}
+
 // Union type for all possible responses from this endpoint
 export type CreateStationResponse =
   | CreateStationSuccessResponse
   | BaseErrorResponse;
+
+export async function GET(): Promise<
+  NextResponse<RecentStationsResponse | BaseErrorResponse>
+> {
+  try {
+    const stationsSnapshot = await stations
+      .orderBy("createdAt", "desc")
+      .limit(20)
+      .get();
+
+    const recentStations: Station[] = [];
+    stationsSnapshot.forEach((doc: QueryDocumentSnapshot<Station>) => {
+      recentStations.push(doc.data());
+    });
+
+    return NextResponse.json({
+      stations: recentStations,
+    });
+  } catch (error) {
+    console.error("Error fetching recent stations:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch recent stations" } as BaseErrorResponse,
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(
   request: NextRequest

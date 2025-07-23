@@ -2,8 +2,10 @@
 
 import SongSearchResult from "@/components/SongSearchResult";
 import { useCreateStationMutation } from "@/hooks/mutations/useCreateStation";
+import { useRecentStations } from "@/hooks/useRecentStations";
 import { Song } from "@/types";
 import { StationLanguage } from "@/types/station";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import ScaleLoader from "react-spinners/ScaleLoader";
@@ -17,6 +19,8 @@ export default function Home() {
 
   const router = useRouter();
   const createStationMutation = useCreateStationMutation();
+  const { data: recentStations, isLoading: isLoadingRecentStations } =
+    useRecentStations();
 
   useEffect(() => {
     if (!query) return;
@@ -52,7 +56,7 @@ export default function Home() {
 
   return (
     <div className="font-sans p-8">
-      <div className="flex flex-col gap-4 w-full max-w-md mx-auto">
+      <div className="flex flex-col gap-8 w-full max-w-2xl mx-auto">
         <div className="flex flex-col gap-4">
           <h1 className="text-2xl font-semibold text-center">
             Let&apos;s start by searching for a song:
@@ -76,6 +80,7 @@ export default function Home() {
             >
               <option value="British English">British English</option>
               <option value="Neutral Spanish">Neutral Spanish</option>
+              <option value="Chilean Spanish">Chilean Spanish</option>
             </select>
           </div>
 
@@ -115,6 +120,47 @@ export default function Home() {
               onSelect={handleSongSelection}
             />
           ))}
+        </div>
+
+        {/* Recent Stations */}
+        <div className="flex flex-col gap-4 mt-8">
+          <h2 className="text-xl font-semibold text-center">Recent Stations</h2>
+
+          {isLoadingRecentStations ? (
+            <div className="flex justify-center items-center gap-2">
+              <ScaleLoader color="#000" height={20} />
+              <div>Loading recent stations...</div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {recentStations && recentStations.length > 0 ? (
+                recentStations.map((station) => {
+                  const artists = station.playlist
+                    .slice(0, 5)
+                    .map((item) => item.artist)
+                    .join(", ");
+
+                  return (
+                    <Link
+                      key={station.id}
+                      href={`/stations/${station.id}`}
+                      className="px-4 py-3 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="text-sm text-gray-900">{artists}</div>
+                      <div className="text-xs text-gray-500 mt-1">
+                        Created{" "}
+                        {new Date(station.createdAt).toLocaleDateString()}
+                      </div>
+                    </Link>
+                  );
+                })
+              ) : (
+                <div className="text-center text-gray-500 py-4">
+                  No recent stations found
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
