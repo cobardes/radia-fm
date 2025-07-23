@@ -44,7 +44,8 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
 
   const isActive = currentItem?.id === item.id;
   const isLoaded = loadedItems.has(item.id);
-  const shouldRenderAudio = currentIndex >= index - 2;
+  const shouldRenderAudio =
+    currentIndex >= index - 2 && currentIndex < index + 2;
 
   // Register with centralized audio manager
   useAudioVisualizer({

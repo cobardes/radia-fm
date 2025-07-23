@@ -39,7 +39,8 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
 
   const isActive = currentItem?.id === item.id;
   const isLoaded = loadedItems.has(item.id);
-  const shouldRenderAudio = currentIndex >= index - 2;
+  const shouldRenderAudio =
+    currentIndex >= index - 2 && currentIndex < index + 2;
 
   // Find the closest previous song in the queue
   const previousSong = (() => {
