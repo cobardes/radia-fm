@@ -9,8 +9,8 @@ import { useContext, useEffect, useRef } from "react";
 import { SEGMENT_ENDING_OFFSET_SECONDS } from "./RadioPlayerSegmentItem";
 import Spinner from "./Spinner";
 
-const INITIAL_VOLUME = 0.15;
-const TARGET_VOLUME = 0.6;
+const INITIAL_VOLUME = 0.3;
+const TARGET_VOLUME = 1;
 const FADE_DURATION = 1000;
 const SONG_ENDING_OFFSET_SECONDS = 2;
 
