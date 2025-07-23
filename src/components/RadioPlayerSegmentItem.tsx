@@ -121,9 +121,12 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
         // Set initial volume to 0
         backgroundRef.current.volume = 0;
 
-        // Start from 33% of the track duration
-        const startPosition = backgroundRef.current.duration * 0.33;
-        backgroundRef.current.currentTime = startPosition;
+        // Start from 33% of the track duration (only if duration is valid)
+        const duration = backgroundRef.current.duration;
+        if (isFinite(duration) && duration > 0) {
+          const startPosition = duration * 0.33;
+          backgroundRef.current.currentTime = startPosition;
+        }
 
         // Start playing
         backgroundRef.current.play();
