@@ -57,6 +57,7 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
     audioElementId: `segment-main-${item.id}`,
     audioElement: audioRef.current,
     isActive: isActive && !paused,
+    enableLoudnessNormalization: true, // Enable loudness normalization for talk segments
   });
 
   const handleAudioLoaded = () => {
@@ -143,7 +144,7 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
       // Start the main audio (talk segment) after 1 second delay
       mainAudioTimeoutRef.current = setTimeout(() => {
         if (audioRef.current) {
-          audioRef.current.volume = 1;
+          // Volume is now controlled by Web Audio API gain node via loudness normalization
           console.log("playing main audio (delay)");
           audioRef.current.play();
         }
