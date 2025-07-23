@@ -3,7 +3,6 @@ import { useContext } from "react";
 import RadioPlayerSegmentItem from "./RadioPlayerSegmentItem";
 import RadioPlayerSongItem from "./RadioPlayerSongItem";
 import { PulseVisualizer } from "./visualizers/PulseVisualizer";
-import { SimpleBarsVisualizer } from "./visualizers/SimpleBarsVisualizer";
 
 function RadioPlayer() {
   const { queue, audioManager } = useContext(RadioPlayerContext);
@@ -17,19 +16,12 @@ function RadioPlayer() {
 
           {/* Main visualizer display */}
           <div className="flex items-center gap-4">
-            {audioManager.isSupported ? (
+            {audioManager.isSupported && (
               <PulseVisualizer
                 averageFrequency={audioManager.visualizerData.averageFrequency}
                 size={80}
                 color="#3b82f6"
               />
-            ) : (
-              <div className="flex items-center gap-4">
-                <div className="text-sm text-gray-500">
-                  Audio visualization not supported
-                </div>
-                <SimpleBarsVisualizer isPlaying={true} barCount={8} />
-              </div>
             )}
           </div>
 
