@@ -1,4 +1,5 @@
 import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
+import { usePauseHandler } from "@/hooks/usePauseHandler";
 import { StationQueueSong } from "@/types/station";
 import { fadeVolume } from "@/utils/fade-volume";
 import { getThumbnailUrl } from "@/utils/get-thumbnail-url";
@@ -96,6 +97,8 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
       finished.current = true;
     }
   }, [currentIndex, index]);
+
+  usePauseHandler(audioRef, isActive);
 
   return (
     <div

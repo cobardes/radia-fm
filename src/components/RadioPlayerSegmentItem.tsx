@@ -1,4 +1,5 @@
 import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
+import { usePauseHandler } from "@/hooks/usePauseHandler";
 import { StationQueueSong, StationQueueTalkSegment } from "@/types/station";
 import { fadeVolume } from "@/utils/fade-volume";
 import { useContext, useEffect, useRef } from "react";
@@ -23,6 +24,7 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
     loadedItems,
     queue,
     markItemAsLoaded,
+    paused,
   } = useContext(RadioPlayerContext);
   const finished = useRef(false);
   const backgroundStarted = useRef(false);
@@ -90,7 +92,7 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
   };
 
   useEffect(() => {
-    if (isActive) {
+    if (isActive && !paused) {
       // Reset background music state when segment becomes active
       backgroundStarted.current = false;
       backgroundFadedOut.current = false;
@@ -122,11 +124,18 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
       mainAudioTimeoutRef.current = setTimeout(() => {
         if (audioRef.current) {
           audioRef.current.volume = 1;
+          console.log("playing main audio (delay)");
           audioRef.current.play();
         }
       }, 1500);
     }
-  }, [isActive, previousSong]);
+
+    return () => {
+      if (mainAudioTimeoutRef.current) {
+        clearTimeout(mainAudioTimeoutRef.current);
+      }
+    };
+  }, [isActive, previousSong, paused]);
 
   useEffect(() => {
     if (currentIndex > index && !finished.current) {
@@ -138,6 +147,20 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
       }
     }
   }, [currentIndex, index]);
+
+  useEffect(() => {
+    if (paused && isActive) {
+      audioRef.current?.pause();
+      backgroundRef.current?.pause();
+    } else if (!paused && isActive) {
+      console.log("playing main audio (unpaused)");
+      audioRef.current?.play();
+      backgroundRef.current?.play();
+    }
+  }, [paused, isActive]);
+
+  usePauseHandler(audioRef, isActive);
+  usePauseHandler(backgroundRef, isActive);
 
   return (
     <div

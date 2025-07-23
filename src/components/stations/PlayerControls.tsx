@@ -3,7 +3,7 @@
 import { useRadioPlayer } from "@/contexts/RadioPlayerContext";
 
 export default function PlayerControls() {
-  const { playNext, autoplayBlocked } = useRadioPlayer();
+  const { playNext, autoplayBlocked, paused, setPaused } = useRadioPlayer();
 
   return (
     <div>
@@ -15,6 +15,18 @@ export default function PlayerControls() {
           Start playback
         </button>
       )}
+      <button
+        className="bg-black text-white p-3 cursor-pointer rounded"
+        onClick={() => setPaused(!paused)}
+      >
+        {paused ? "Play" : "Pause"}
+      </button>
+      <button
+        className="bg-black text-white p-3 cursor-pointer rounded"
+        onClick={playNext}
+      >
+        Next
+      </button>
     </div>
   );
 }

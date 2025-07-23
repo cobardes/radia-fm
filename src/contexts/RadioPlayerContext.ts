@@ -1,5 +1,7 @@
 import { RealtimeStation } from "@/hooks/stations/useRealtimeStation";
+import { useMediaSession } from "@/hooks/useMediaSession";
 import { StationQueue, StationQueueItem } from "@/types/station";
+import { getThumbnailUrl } from "@/utils/get-thumbnail-url";
 import {
   createContext,
   useCallback,
@@ -18,6 +20,8 @@ interface RadioPlayerContextType {
   playNext: () => void;
   handlePlaybackError: () => void;
   autoplayBlocked: boolean;
+  paused: boolean;
+  setPaused: (paused: boolean) => void;
 }
 
 export const RadioPlayerContext = createContext<RadioPlayerContextType>({
@@ -29,6 +33,8 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
   playNext: () => {},
   handlePlaybackError: () => {},
   autoplayBlocked: false,
+  paused: false,
+  setPaused: () => {},
 });
 
 async function canAutoplayAudio() {
@@ -51,6 +57,7 @@ export const useRadioPlayerContextValue = (
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const [loadedItems, setLoadedItems] = useState<Set<string>>(new Set());
   const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(false);
+  const [paused, setPaused] = useState<boolean>(false);
 
   const { station, extend } = realtimeStation;
 
@@ -86,6 +93,48 @@ export const useRadioPlayerContextValue = (
     setCurrentIndex((prev) => prev - 1);
   }, []);
 
+  const handlePlay = useCallback(() => {
+    setPaused(false);
+  }, []);
+
+  const handlePause = useCallback(() => {
+    setPaused(true);
+  }, []);
+
+  // Set up media session with current item metadata
+  const mediaMetadata = useMemo(() => {
+    if (!currentItem) return undefined;
+
+    if (currentItem.type === "song") {
+      return {
+        title: currentItem.title,
+        artist: currentItem.artist,
+        album: "Radius",
+        artwork: [
+          {
+            src: getThumbnailUrl(currentItem.id),
+            sizes: "300x300",
+            type: "image/jpeg",
+          },
+        ],
+      };
+    } else {
+      return {
+        title: "Your DJ is talking",
+        artist: "Radius",
+        artwork: [],
+      };
+    }
+  }, [currentItem]);
+
+  // Use media session hook
+  useMediaSession({
+    onNextTrack: playNext,
+    onPlay: handlePlay,
+    onPause: handlePause,
+    metadata: mediaMetadata,
+  });
+
   /* Initial playback */
   useEffect(() => {
     if (!isQueueValid) return;
@@ -110,6 +159,8 @@ export const useRadioPlayerContextValue = (
     playNext,
     handlePlaybackError,
     autoplayBlocked,
+    paused,
+    setPaused,
   };
 };
 
