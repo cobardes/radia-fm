@@ -3,9 +3,18 @@
 import { useRadioPlayer } from "@/contexts/RadioPlayerContext";
 
 export default function PlayerControls() {
-  const { currentIndex, playNext } = useRadioPlayer();
+  const { playNext, autoplayBlocked } = useRadioPlayer();
 
   return (
-    <div>{currentIndex === -1 && <button onClick={playNext}>Play</button>}</div>
+    <div>
+      {autoplayBlocked && (
+        <button
+          className="bg-black text-white p-3 cursor-pointer rounded"
+          onClick={playNext}
+        >
+          Start playback
+        </button>
+      )}
+    </div>
   );
 }

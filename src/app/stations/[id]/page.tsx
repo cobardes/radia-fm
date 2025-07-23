@@ -2,6 +2,7 @@
 
 import RadioPlayer from "@/components/RadioPlayer";
 import NowPlaying from "@/components/stations/NowPlaying";
+import PlayerControls from "@/components/stations/PlayerControls";
 import {
   RadioPlayerContext,
   useRadioPlayerContextValue,
@@ -35,6 +36,7 @@ function StationPageContent() {
   return (
     <div className="flex flex-col gap-4">
       <NowPlaying />
+      <PlayerControls />
       <RadioPlayer />
     </div>
   );

@@ -17,6 +17,7 @@ interface RadioPlayerContextType {
   markItemAsLoaded: (itemId: string) => void;
   playNext: () => void;
   handlePlaybackError: () => void;
+  autoplayBlocked: boolean;
 }
 
 export const RadioPlayerContext = createContext<RadioPlayerContextType>({
@@ -27,18 +28,19 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
   markItemAsLoaded: () => {},
   playNext: () => {},
   handlePlaybackError: () => {},
+  autoplayBlocked: false,
 });
 
 async function canAutoplayAudio() {
   const audio = new Audio();
   audio.src =
     "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA="; // silent audio
-  audio.muted = true;
+  audio.muted = false;
 
   try {
     await audio.play();
     return true;
-  } catch (err) {
+  } catch {
     return false;
   }
 }
@@ -48,7 +50,7 @@ export const useRadioPlayerContextValue = (
 ) => {
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const [loadedItems, setLoadedItems] = useState<Set<string>>(new Set());
-  const [autoplayAllowed, setAutoplayAllowed] = useState<boolean>(false);
+  const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(false);
 
   const { station, extend } = realtimeStation;
 
@@ -70,10 +72,14 @@ export const useRadioPlayerContextValue = (
   }, []);
 
   const playNext = useCallback(() => {
-    console.log("playNext called");
+    canAutoplayAudio().then((allowed) => {
+      setAutoplayBlocked(!allowed);
 
-    if (queue.length <= currentIndex + 1) return;
-    setCurrentIndex((prev) => prev + 1);
+      if (allowed) {
+        if (queue.length <= currentIndex + 1) return;
+        setCurrentIndex((prev) => prev + 1);
+      }
+    });
   }, [queue, currentIndex]);
 
   const handlePlaybackError = useCallback(() => {
@@ -85,12 +91,7 @@ export const useRadioPlayerContextValue = (
     if (!isQueueValid) return;
 
     if (currentIndex === -1) {
-      /* Do not autoplay if the user has not interacted with the page */
-      canAutoplayAudio().then((allowed) => {
-        console.log("autoplay allowed", allowed);
-        setAutoplayAllowed(allowed);
-        if (allowed) playNext();
-      });
+      playNext();
     }
   }, [currentIndex, isQueueValid, playNext]);
 
@@ -108,7 +109,7 @@ export const useRadioPlayerContextValue = (
     markItemAsLoaded,
     playNext,
     handlePlaybackError,
-    autoplayAllowed,
+    autoplayBlocked,
   };
 };
 
