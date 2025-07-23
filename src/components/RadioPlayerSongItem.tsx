@@ -1,4 +1,5 @@
 import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
+import { useAudioVisualizer } from "@/hooks/useAudioVisualizer";
 import { usePauseHandler } from "@/hooks/usePauseHandler";
 import { StationQueueSong } from "@/types/station";
 import { fadeVolume } from "@/utils/fade-volume";
@@ -34,6 +35,8 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
     loadedItems,
     queue,
     markItemAsLoaded,
+    audioManager,
+    paused,
   } = useContext(RadioPlayerContext);
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -42,6 +45,13 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
   const isActive = currentItem?.id === item.id;
   const isLoaded = loadedItems.has(item.id);
   const shouldRenderAudio = currentIndex >= index - 2;
+
+  // Register with centralized audio manager
+  useAudioVisualizer({
+    audioElementId: `song-${item.id}`,
+    audioElement: audioRef.current,
+    isActive,
+  });
 
   const handleAudioLoaded = () => {
     markItemAsLoaded(item.id);
@@ -61,7 +71,12 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
   };
 
   useEffect(() => {
-    if (isActive && audioRef.current && !isPlaying(audioRef.current)) {
+    if (
+      isActive &&
+      audioRef.current &&
+      !isPlaying(audioRef.current) &&
+      !paused
+    ) {
       // Reset finished flag when starting a new song
       finished.current = false;
 
@@ -88,8 +103,11 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
       }
 
       audioRef.current.play();
+
+      // Start centralized visualization
+      audioManager.startVisualization();
     }
-  }, [isActive, currentIndex, queue]);
+  }, [isActive, currentIndex, queue, audioManager, paused]);
 
   useEffect(() => {
     if (currentIndex > index && !finished.current) {
@@ -114,7 +132,7 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
           height={300}
           className="rounded-md bg-gray-200 w-10"
         />
-        <div className="flex flex-col">
+        <div className="flex flex-col flex-1">
           <div
             className={`text-sm font-semibold ${
               isActive ? "text-blue-600" : ""
@@ -124,8 +142,11 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
           </div>
           <div className="text-sm text-gray-500">{item.artist}</div>
         </div>
+
+        {/* Simple loading indicator */}
         {!isLoaded && shouldRenderAudio && <Spinner color="#666" size={20} />}
       </div>
+
       {shouldRenderAudio && (
         <audio
           ref={audioRef}

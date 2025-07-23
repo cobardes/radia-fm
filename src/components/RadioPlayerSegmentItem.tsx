@@ -1,4 +1,5 @@
 import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
+import { useAudioVisualizer } from "@/hooks/useAudioVisualizer";
 import { usePauseHandler } from "@/hooks/usePauseHandler";
 import { StationQueueSong, StationQueueTalkSegment } from "@/types/station";
 import { fadeVolume } from "@/utils/fade-volume";
@@ -25,6 +26,7 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
     queue,
     markItemAsLoaded,
     paused,
+    audioManager,
   } = useContext(RadioPlayerContext);
   const finished = useRef(false);
   const backgroundStarted = useRef(false);
@@ -49,6 +51,13 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
     }
     return null;
   })();
+
+  // Register main audio with centralized manager
+  useAudioVisualizer({
+    audioElementId: `segment-main-${item.id}`,
+    audioElement: audioRef.current,
+    isActive: isActive && !paused,
+  });
 
   const handleAudioLoaded = () => {
     markItemAsLoaded(item.id);
@@ -91,6 +100,14 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
     }
   };
 
+  // Start visualization for mixed audio
+  useEffect(() => {
+    if (isActive && !paused) {
+      audioManager.startVisualization();
+    }
+  }, [isActive, paused, audioManager]);
+
+  // Start background music
   useEffect(() => {
     if (isActive && !paused) {
       // Reset background music state when segment becomes active
@@ -137,6 +154,7 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
     };
   }, [isActive, previousSong, paused]);
 
+  // Pause the audio when the segment is no longer active
   useEffect(() => {
     if (currentIndex > index && !finished.current) {
       finished.current = true;
@@ -148,16 +166,17 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
     }
   }, [currentIndex, index]);
 
-  useEffect(() => {
-    if (paused && isActive) {
-      audioRef.current?.pause();
-      backgroundRef.current?.pause();
-    } else if (!paused && isActive) {
-      console.log("playing main audio (unpaused)");
-      audioRef.current?.play();
-      backgroundRef.current?.play();
-    }
-  }, [paused, isActive]);
+  // Pause the audio when the segment is paused
+  // useEffect(() => {
+  //   if (paused && isActive) {
+  //     audioRef.current?.pause();
+  //     backgroundRef.current?.pause();
+  //   } else if (!paused && isActive) {
+  //     console.log("playing main audio (unpaused)");
+  //     audioRef.current?.play();
+  //     backgroundRef.current?.play();
+  //   }
+  // }, [paused, isActive]);
 
   usePauseHandler(audioRef, isActive);
   usePauseHandler(backgroundRef, isActive);
@@ -193,7 +212,7 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
               src={previousSong.audioUrl}
               preload="auto"
               autoPlay={false}
-              controls={false}
+              controls={true}
             />
           )}
         </>

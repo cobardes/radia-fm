@@ -12,8 +12,10 @@ export const usePauseHandler = (
 
   useEffect(() => {
     if (paused && isActive) {
+      console.log("Paused because state changed");
       audioRef.current?.pause();
     } else if (!paused && isActive) {
+      console.log("Playing because state changed");
       audioRef.current?.play();
     }
   }, [paused, isActive]);
@@ -21,8 +23,10 @@ export const usePauseHandler = (
   useEffect(() => {
     if (isActive) {
       if (playbackState === "playing") {
+        console.log("Playing because <audio> playback state changed");
         setPaused(false);
       } else if (playbackState === "paused") {
+        console.log("Paused because <audio> playback state changed");
         setPaused(true);
       }
     }

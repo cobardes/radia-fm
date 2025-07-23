@@ -1,4 +1,5 @@
 import { RealtimeStation } from "@/hooks/stations/useRealtimeStation";
+import { useAudioManager } from "@/hooks/useAudioManager";
 import { useMediaSession } from "@/hooks/useMediaSession";
 import { StationQueue, StationQueueItem } from "@/types/station";
 import { getThumbnailUrl } from "@/utils/get-thumbnail-url";
@@ -22,6 +23,20 @@ interface RadioPlayerContextType {
   autoplayBlocked: boolean;
   paused: boolean;
   setPaused: (paused: boolean) => void;
+  // Audio manager functions
+  audioManager: {
+    visualizerData: {
+      frequencyData: Uint8Array;
+      timeData: Uint8Array;
+      averageFrequency: number;
+    } | null;
+    isSupported: boolean;
+    startVisualization: () => void;
+    stopVisualization: () => void;
+    registerAudioElement: (id: string, audioElement: HTMLAudioElement) => void;
+    unregisterAudioElement: (id: string) => void;
+    setAudioElementActive: (id: string, isActive: boolean) => void;
+  };
 }
 
 export const RadioPlayerContext = createContext<RadioPlayerContextType>({
@@ -35,6 +50,15 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
   autoplayBlocked: false,
   paused: false,
   setPaused: () => {},
+  audioManager: {
+    visualizerData: null,
+    isSupported: false,
+    startVisualization: () => {},
+    stopVisualization: () => {},
+    registerAudioElement: () => {},
+    unregisterAudioElement: () => {},
+    setAudioElementActive: () => {},
+  },
 });
 
 async function canAutoplayAudio() {
@@ -60,6 +84,12 @@ export const useRadioPlayerContextValue = (
   const [paused, setPaused] = useState<boolean>(false);
 
   const { station, extend } = realtimeStation;
+
+  // Initialize centralized audio manager
+  const audioManager = useAudioManager({
+    fftSize: 512,
+    smoothingTimeConstant: 0.3,
+  });
 
   const queue = station?.queue ?? [];
   const currentItem = queue[currentIndex];
@@ -150,18 +180,35 @@ export const useRadioPlayerContextValue = (
     }
   }, [currentIndex, queue, extend]);
 
-  return {
-    queue,
-    currentIndex,
-    currentItem,
-    loadedItems,
-    markItemAsLoaded,
-    playNext,
-    handlePlaybackError,
-    autoplayBlocked,
-    paused,
-    setPaused,
-  };
+  // Memoize the context value to prevent unnecessary re-renders
+  return useMemo(
+    () => ({
+      queue,
+      currentIndex,
+      currentItem,
+      loadedItems,
+      markItemAsLoaded,
+      playNext,
+      handlePlaybackError,
+      autoplayBlocked,
+      paused,
+      setPaused,
+      audioManager,
+    }),
+    [
+      queue,
+      currentIndex,
+      currentItem,
+      loadedItems,
+      markItemAsLoaded,
+      playNext,
+      handlePlaybackError,
+      autoplayBlocked,
+      paused,
+      setPaused,
+      audioManager,
+    ]
+  );
 };
 
 export const useRadioPlayer = () => {
