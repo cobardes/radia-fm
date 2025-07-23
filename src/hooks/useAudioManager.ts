@@ -38,7 +38,7 @@ interface LoudnessAnalysis {
 export const useAudioManager = ({
   fftSize = 512,
   smoothingTimeConstant = 0.3,
-  targetLoudnessDb = -2, // Common target for speech content (LUFS)
+  targetLoudnessDb = -6, // Common target for speech content (LUFS)
 }: UseAudioManagerProps = {}) => {
   // STATE VARIABLES
   // Whether Web Audio API is supported in this browser

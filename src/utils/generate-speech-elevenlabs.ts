@@ -16,6 +16,15 @@ const Voices: Record<
     voiceSettings: TextToSpeechRequest["voiceSettings"];
   }
 > = {
+  "Chilean Spanish": {
+    voiceId: "B10SmiMIwxTlneUpKPyE",
+    voiceSettings: {
+      speed: 1.1,
+      stability: 0.3,
+      similarityBoost: 0.5,
+      useSpeakerBoost: true,
+    },
+  },
   "Neutral Spanish": {
     voiceId: "B10SmiMIwxTlneUpKPyE",
     voiceSettings: {

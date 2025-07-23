@@ -30,6 +30,7 @@ export async function generateSpeech(
 const Voices: Record<StationLanguage, string> = {
   "British English": "Despina",
   "Neutral Spanish": "Despina",
+  "Chilean Spanish": "Iapetus",
 };
 
 // Helper function to generate speech as buffer (main implementation)
@@ -56,20 +57,20 @@ export async function generateSpeechBuffer(
     },
   };
 
-  const model = "gemini-2.5-flash-preview-tts";
+  const model = "gemini-2.5-pro-preview-tts";
   const contents = [
     {
       role: "user" as const,
       parts: [
         {
-          text: `Speak in a serious but casual manner, like giving a lecture. You have a smooth voice. Lower your pitch. You have a ${
+          text: `Speak in a casual manner, like if you were talking to a friend. You have a smooth voice. Lower your pitch. You have a thick ${
             language.split(" ")[0]
           } accent. Speak fast! Read the following segment:
 
           ${prompt}
           
           (brief silence)
-          (Remember you have a ${language.split(" ")[0]} accent.)`,
+          (Remember you have a thick ${language.split(" ")[0]} accent.)`,
         },
       ],
     },

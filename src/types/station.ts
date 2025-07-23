@@ -1,6 +1,9 @@
 import { z } from "zod";
 
-export type StationLanguage = "British English" | "Neutral Spanish";
+export type StationLanguage =
+  | "British English"
+  | "Neutral Spanish"
+  | "Chilean Spanish";
 
 export interface Station {
   id: string;
