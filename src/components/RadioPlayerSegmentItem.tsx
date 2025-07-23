@@ -167,16 +167,17 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
   }, [currentIndex, index]);
 
   // Pause the audio when the segment is paused
-  // useEffect(() => {
-  //   if (paused && isActive) {
-  //     audioRef.current?.pause();
-  //     backgroundRef.current?.pause();
-  //   } else if (!paused && isActive) {
-  //     console.log("playing main audio (unpaused)");
-  //     audioRef.current?.play();
-  //     backgroundRef.current?.play();
-  //   }
-  // }, [paused, isActive]);
+  // I'm not sure why i need this if the usePauseHandler is working...
+  useEffect(() => {
+    if (paused && isActive) {
+      audioRef.current?.pause();
+      backgroundRef.current?.pause();
+    } else if (!paused && isActive) {
+      console.log("playing main audio (unpaused)");
+      audioRef.current?.play();
+      backgroundRef.current?.play();
+    }
+  }, [paused, isActive]);
 
   usePauseHandler(audioRef, isActive);
   usePauseHandler(backgroundRef, isActive);
