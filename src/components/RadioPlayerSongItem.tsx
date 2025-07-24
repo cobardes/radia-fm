@@ -9,10 +9,10 @@ import { useContext, useEffect, useRef } from "react";
 import { SEGMENT_ENDING_OFFSET_SECONDS } from "./RadioPlayerSegmentItem";
 import Spinner from "./Spinner";
 
-const INITIAL_VOLUME = 0.3;
-const TARGET_VOLUME = 1;
+const INITIAL_VOLUME = 0.1;
+const TARGET_VOLUME = 0.5;
 const FADE_DURATION = 1000;
-const SONG_ENDING_OFFSET_SECONDS = 2;
+const SONG_ENDING_OFFSET_SECONDS = 1;
 
 interface RadioPlayerSongItemProps {
   item: StationQueueSong;
@@ -143,6 +143,8 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
           </div>
           <div className="text-sm text-gray-500">{item.artist}</div>
         </div>
+
+        <div>{item.reason}</div>
 
         {/* Simple loading indicator */}
         {!isLoaded && shouldRenderAudio && <Spinner color="#666" size={20} />}

@@ -13,9 +13,10 @@ interface RadioPlayerSegmentItemProps {
 
 export const SEGMENT_ENDING_OFFSET_SECONDS = 1.5;
 
+const SEGMENT_TARGET_VOLUME = 0.5;
+const BACKGROUND_TARGET_VOLUME = 0.05;
 const BACKGROUND_FADE_IN_DURATION_MS = 2000;
 const BACKGROUND_FADE_OUT_DURATION_MS = 3000;
-const BACKGROUND_FADE_IN_VOLUME = 0.075;
 
 function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
   const {
@@ -137,7 +138,7 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
         fadeVolume(
           backgroundRef.current,
           0,
-          BACKGROUND_FADE_IN_VOLUME,
+          BACKGROUND_TARGET_VOLUME,
           BACKGROUND_FADE_IN_DURATION_MS
         );
       }
@@ -147,6 +148,7 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
         if (audioRef.current) {
           // Volume is now controlled by Web Audio API gain node via loudness normalization
           console.log("playing main audio (delay)");
+          audioRef.current.volume = SEGMENT_TARGET_VOLUME;
           audioRef.current.play();
         }
       }, 1500);
@@ -179,6 +181,9 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
       backgroundRef.current?.pause();
     } else if (!paused && isActive) {
       console.log("playing main audio (unpaused)");
+      if (audioRef.current) {
+        audioRef.current.volume = SEGMENT_TARGET_VOLUME;
+      }
       audioRef.current?.play();
       backgroundRef.current?.play();
     }
