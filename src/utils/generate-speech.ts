@@ -39,7 +39,7 @@ export async function generateSpeechBuffer(
   language: StationLanguage,
   options: GenerateSpeechOptions = {}
 ): Promise<Buffer> {
-  const { temperature = 1, voiceName = Voices[language] } = options;
+  const { temperature = 1.3, voiceName = Voices[language] } = options;
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
@@ -63,9 +63,9 @@ export async function generateSpeechBuffer(
       role: "user" as const,
       parts: [
         {
-          text: `Speak in a casual manner, like if you were talking to a friend. You have a smooth voice. Lower your pitch. You have a thick ${
+          text: `Speak in a very fast and casual manner, like if you were talking to a friend. You have a very thick ${
             language.split(" ")[0]
-          } accent. Speak fast! Read the following segment:
+          } accent. Read the following segment:
 
           ${prompt}
           
