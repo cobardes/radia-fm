@@ -35,7 +35,7 @@ const Voices: Record<
     },
   },
   "British English": {
-    voiceId: "nrD2uNU2IUYtedZegcGx",
+    voiceId: "aD6riP1btT197c6dACmy",
     voiceSettings: {
       speed: 1.1,
       stability: 0.5,
