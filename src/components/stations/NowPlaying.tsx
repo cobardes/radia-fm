@@ -13,7 +13,8 @@ import { SphereVisualizer } from "../visualizers/SphereVisualizer";
 const SCALE_CONFIG = {
   MIN_SCALE: 0.4, // Minimum scale when audio is quiet
   MAX_SCALE: 1.2, // Maximum scale when audio is loud
-  SMOOTHING_FACTOR: 0.1, // How quickly scale responds to changes (0-1, lower = smoother)
+  SMOOTHING_FACTOR: 0.3, // How quickly scale responds to changes (0-1, lower = smoother)
+  BACKGROUND_SMOOTHING_FACTOR: 0.05, // Smoother factor for background sphere
   DEFAULT_FREQUENCY: 50, // Fallback frequency when no audio data
 } as const;
 
@@ -70,6 +71,8 @@ export default function NowPlaying() {
 
   const [dominantColors, setDominantColors] = useState<string[]>([]);
   const [smoothedScale, setSmoothedScale] = useState<number>(1);
+  const [backgroundSmoothedScale, setBackgroundSmoothedScale] =
+    useState<number>(1);
 
   const speed = (audioManager.visualizerData?.averageFrequency ?? 1) / 255;
 
@@ -82,9 +85,17 @@ export default function NowPlaying() {
     const targetScale =
       SCALE_CONFIG.MIN_SCALE + (currentFrequency / 255) * scaleRange;
 
+    // Update main sphere scale
     setSmoothedScale((prev) => {
       // Exponential smoothing for smoother transitions
       return prev + (targetScale - prev) * SCALE_CONFIG.SMOOTHING_FACTOR;
+    });
+
+    // Update background sphere scale with smoother transitions
+    setBackgroundSmoothedScale((prev) => {
+      return (
+        prev + (targetScale - prev) * SCALE_CONFIG.BACKGROUND_SMOOTHING_FACTOR
+      );
     });
   }, [audioManager.visualizerData?.averageFrequency]);
 
@@ -147,10 +158,20 @@ export default function NowPlaying() {
           />
         </div>
       </div>
-      <div className="w-full h-full flex flex-col gap-6 items-center justify-center">
+      <div className="w-full h-full flex flex-col gap-6 items-center justify-center relative pointer-events-none -z-10">
+        <div
+          id="background-sphere"
+          className="absolute scale-200 blur-3xl opacity-80"
+        >
+          <SphereVisualizer
+            colors={dominantColors}
+            speed={speed}
+            scale={backgroundSmoothedScale}
+          />
+        </div>
         <SphereVisualizer
           colors={dominantColors}
-          speed={speed}
+          speed={speed * 1.5}
           scale={smoothedScale}
         />
       </div>

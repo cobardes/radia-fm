@@ -77,6 +77,12 @@ export const extractDominantColors = (imageUrl: string): Promise<string[]> => {
           // Skip transparent/very transparent pixels
           if (a < 125) continue;
 
+          // Calculate brightness (perceived luminance) to filter out dark colors
+          const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+          // Skip colors that are too dark (brightness < 0.2)
+          if (brightness < 0.4) continue;
+
           // Group similar colors by reducing precision
           const groupedR = Math.floor(r / 32) * 32;
           const groupedG = Math.floor(g / 32) * 32;
@@ -107,29 +113,16 @@ export const extractDominantColors = (imageUrl: string): Promise<string[]> => {
           return;
         }
 
-        // Find the most vibrant color among the top colors
-        let mostVibrantIndex = 0;
-        let highestVibrancy = 0;
+        // Sort all colors by vibrancy (highest first)
+        const sortedByVibrancy = sortedByFrequency
+          .map(([color, data]) => ({
+            color,
+            vibrancy: calculateVibrancy(data.r, data.g, data.b),
+          }))
+          .sort((a, b) => b.vibrancy - a.vibrancy)
+          .map(({ color }) => color);
 
-        sortedByFrequency.forEach(([color, data], index) => {
-          const vibrancy = calculateVibrancy(data.r, data.g, data.b);
-          if (vibrancy > highestVibrancy) {
-            highestVibrancy = vibrancy;
-            mostVibrantIndex = index;
-          }
-        });
-
-        // Reorder: most vibrant first, then the rest by frequency
-        const result = [sortedByFrequency[mostVibrantIndex][0]];
-
-        // Add the remaining colors (excluding the most vibrant one)
-        sortedByFrequency.forEach(([color], index) => {
-          if (index !== mostVibrantIndex) {
-            result.push(color);
-          }
-        });
-
-        resolve(result);
+        resolve(sortedByVibrancy);
       } catch (error) {
         console.warn("Could not extract colors from image:", error);
         resolve([]);

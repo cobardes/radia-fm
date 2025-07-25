@@ -11,11 +11,15 @@ const ANIMATION_CONFIG = {
 
 // Particle animation constants
 const PARTICLE_CONFIG = {
-  ORBIT_RADIUS_RATIO: 0.5, // Orbit radius as a ratio of canvas size
+  ORBIT_RADIUS_RATIO: 0.3, // Orbit radius as a ratio of canvas size
   BASE_SIZE_RATIO: 0.5, // Base size of particles as a ratio of canvas size
   SIZE_OSCILLATION_AMOUNT: 0.1, // How much the size varies (±40%)
   SIZE_FREQUENCY_BASE: 0.08, // Base frequency for size oscillation
   SIZE_FREQUENCY_VARIATION: 0.03, // Frequency variation between particles
+  ELLIPSE_RATIO_BASE: 1.0, // Base width/height ratio for ellipses
+  ELLIPSE_RATIO_VARIATION: 0.6, // How much the ellipse ratio varies
+  ELLIPSE_FREQUENCY_BASE: 0.5, // Base frequency for ellipse shape changes
+  ELLIPSE_FREQUENCY_VARIATION: 0.05, // Frequency variation for ellipse changes
 } as const;
 
 type SphereVisualizerProps = {
@@ -100,7 +104,7 @@ export const SphereVisualizer = ({
         let circleColor;
         if (colors.length > 1) {
           // Calculate which color we're transitioning between - use accumulated time
-          const colorCycleSpeed = 0.01;
+          const colorCycleSpeed = 0.05;
           const colorTime = (accumulatedTime * colorCycleSpeed) % colors.length;
           const currentColorIndex = Math.floor(colorTime);
           const nextColorIndex = (currentColorIndex + 1) % colors.length;
@@ -137,9 +141,31 @@ export const SphereVisualizer = ({
             baseSizeRatio + sizeOscillation * oscillationAmount;
           const dynamicSize = size * dynamicSizeRatio;
 
-          p.fill(circle.color);
+          // Calculate ellipse shape changes
+          const ellipseFreq =
+            PARTICLE_CONFIG.ELLIPSE_FREQUENCY_BASE +
+            index * PARTICLE_CONFIG.ELLIPSE_FREQUENCY_VARIATION;
+          const ellipsePhase = (index * p.PI * 1.3) / colors.length; // Different phase for shape
+          const ellipseOscillation = p.sin(
+            accumulatedTime * ellipseFreq + ellipsePhase
+          );
+
+          // Calculate width and height ratios for ellipse
+          const baseRatio = PARTICLE_CONFIG.ELLIPSE_RATIO_BASE;
+          const ratioVariation = PARTICLE_CONFIG.ELLIPSE_RATIO_VARIATION;
+          const widthRatio = baseRatio + ellipseOscillation * ratioVariation;
+          const heightRatio =
+            baseRatio - ellipseOscillation * ratioVariation * 0.7; // Different variation for height
+
+          const ellipseWidth = dynamicSize * widthRatio;
+          const ellipseHeight = dynamicSize * heightRatio;
+
+          // Draw main particle ellipse
+          const mainColor = p.color(circle.color);
+          mainColor.setAlpha(opacity * 255);
+          p.fill(mainColor);
           p.noStroke();
-          p.circle(circle.x, circle.y, dynamicSize);
+          p.ellipse(circle.x, circle.y, ellipseWidth, ellipseHeight);
         });
       };
     };
@@ -158,9 +184,10 @@ export const SphereVisualizer = ({
 
   return (
     <div
-      className={`rounded-full transition-transform ${
+      id="sphere-visualizer"
+      className={`rounded-full bg-transparent transition-transform ${
         ANIMATION_CONFIG.TRANSITION_DURATION
-      } ${ANIMATION_CONFIG.EASING} contrast-75 ${
+      } ${ANIMATION_CONFIG.EASING} ${
         overflow === "hidden" ? " overflow-hidden" : "overflow-visible"
       }`}
       style={{
@@ -169,16 +196,19 @@ export const SphereVisualizer = ({
         transform: `scale(${scale})`,
       }}
     >
-      <div
-        className={`rounded-full contrast-200 blur-md ${
-          overflow === "hidden" ? "overflow-hidden" : "overflow-visible"
-        }`}
-        style={{ width: size, height: size }}
-      >
-        <div className="blur-xl">
-          <div ref={containerRef} style={{ width: size, height: size }} />
+      <div className={`rounded-full`} style={{ width: size, height: size }}>
+        <div className="blur-xl contrast-150 ">
+          <div className="saturate-150">
+            <div ref={containerRef} style={{ width: size, height: size }} />
+          </div>
         </div>
       </div>
+      <div
+        className="absolute inset-0 rounded-full"
+        style={{
+          boxShadow: "inset -20px -20px 60px rgba(0, 0, 0, .5)",
+        }}
+      />
     </div>
   );
 };
