@@ -3,16 +3,18 @@
 import p5 from "p5";
 import { useEffect, useRef } from "react";
 
+const SIZE = 200;
+
 // Animation constants
 const ANIMATION_CONFIG = {
-  TRANSITION_DURATION: "duration-100", // Tailwind duration class
+  TRANSITION_DURATION: "100ms", // Tailwind duration class
   EASING: "ease-out", // CSS easing function
 } as const;
 
 // Particle animation constants
 const PARTICLE_CONFIG = {
   ORBIT_RADIUS_RATIO: 0.3, // Orbit radius as a ratio of canvas size
-  BASE_SIZE_RATIO: 0.5, // Base size of particles as a ratio of canvas size
+  BASE_SIZE_RATIO: 0.7, // Base size of particles as a ratio of canvas size
   SIZE_OSCILLATION_AMOUNT: 0.1, // How much the size varies (±40%)
   SIZE_FREQUENCY_BASE: 0.08, // Base frequency for size oscillation
   SIZE_FREQUENCY_VARIATION: 0.03, // Frequency variation between particles
@@ -23,32 +25,26 @@ const PARTICLE_CONFIG = {
 } as const;
 
 type SphereVisualizerProps = {
-  size?: number;
   colors?: string[];
-  backgroundColor?: string;
-  opacity?: number;
   speed?: number;
   scale?: number;
-  overflow?: "hidden" | "visible";
+  goBlack?: boolean;
 };
 
 export const SphereVisualizer = ({
-  size = 200,
+  goBlack = false,
   scale = 1,
   colors = ["#3b82f6"],
-  backgroundColor = "transparent",
-  opacity = 1,
   speed = 1,
-  overflow = "hidden",
 }: SphereVisualizerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const p5Instance = useRef<p5 | null>(null);
-  const propsRef = useRef({ colors, backgroundColor, opacity, speed });
+  const propsRef = useRef({ colors, speed });
 
   // Update props ref when props change (without recreating sketch)
   useEffect(() => {
-    propsRef.current = { colors, backgroundColor, opacity, speed };
-  }, [colors, backgroundColor, opacity, speed]);
+    propsRef.current = { colors, speed };
+  }, [colors, speed]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -57,25 +53,21 @@ export const SphereVisualizer = ({
       let accumulatedTime = 0; // Track time independently of speed changes
 
       p.setup = () => {
-        p.createCanvas(size, size); // 2D canvas instead of WEBGL
+        p.createCanvas(SIZE, SIZE); // 2D canvas instead of WEBGL
       };
 
       p.draw = () => {
-        const { colors, backgroundColor, opacity, speed } = propsRef.current;
+        const { colors, speed } = propsRef.current;
 
         // Accumulate time based on current speed (instead of using frameCount)
         accumulatedTime += 0.015 * speed;
 
         // Set background
-        if (backgroundColor === "transparent") {
-          p.clear();
-        } else {
-          p.background(backgroundColor);
-        }
+        p.clear();
 
         // Center coordinates
-        const centerX = size / 2;
-        const centerY = size / 2;
+        const centerX = SIZE / 2;
+        const centerY = SIZE / 2;
 
         // Store circle positions for visualization
         const circlePositions: { x: number; y: number; color: string }[] = [];
@@ -90,7 +82,7 @@ export const SphereVisualizer = ({
           const phaseOffset = (index * p.PI * 2) / colors.length; // Distribute around circle
 
           // Position circles around the main circle with gentle movement
-          const radius = size * PARTICLE_CONFIG.ORBIT_RADIUS_RATIO;
+          const radius = SIZE * PARTICLE_CONFIG.ORBIT_RADIUS_RATIO;
 
           const circleX = centerX + p.cos(time * freqX + phaseOffset) * radius;
           const circleY = centerY + p.sin(time * freqY + phaseOffset) * radius;
@@ -118,12 +110,12 @@ export const SphereVisualizer = ({
           circleColor = p.color(colors[0] || "#fff");
         }
 
-        circleColor.setAlpha(opacity * 255);
+        circleColor.setAlpha(1 * 255);
         p.fill(circleColor);
         p.noStroke();
 
         // Draw the main circle at center
-        p.circle(centerX, centerY, size); // Main circle diameter equals canvas size
+        p.circle(centerX, centerY, SIZE); // Main circle diameter equals canvas size
 
         // Draw colored particle circles
         circlePositions.forEach((circle, index) => {
@@ -139,7 +131,7 @@ export const SphereVisualizer = ({
           const oscillationAmount = PARTICLE_CONFIG.SIZE_OSCILLATION_AMOUNT;
           const dynamicSizeRatio =
             baseSizeRatio + sizeOscillation * oscillationAmount;
-          const dynamicSize = size * dynamicSizeRatio;
+          const dynamicSize = SIZE * dynamicSizeRatio;
 
           // Calculate ellipse shape changes
           const ellipseFreq =
@@ -162,7 +154,7 @@ export const SphereVisualizer = ({
 
           // Draw main particle ellipse
           const mainColor = p.color(circle.color);
-          mainColor.setAlpha(opacity * 255);
+          mainColor.setAlpha(1 * 255);
           p.fill(mainColor);
           p.noStroke();
           p.ellipse(circle.x, circle.y, ellipseWidth, ellipseHeight);
@@ -180,33 +172,41 @@ export const SphereVisualizer = ({
         p5Instance.current = null;
       }
     };
-  }, [size]); // Include size in dependencies since it affects canvas creation
+  }, []); // No dependencies needed since size is now constant
 
   return (
     <div
       id="sphere-visualizer"
-      className={`rounded-full bg-transparent transition-transform ${
-        ANIMATION_CONFIG.TRANSITION_DURATION
-      } ${ANIMATION_CONFIG.EASING} ${
-        overflow === "hidden" ? " overflow-hidden" : "overflow-visible"
-      }`}
+      className={`rounded-full bg-transparent transition-transform overflow-hidden`}
       style={{
-        width: size,
-        height: size,
+        width: SIZE,
+        height: SIZE,
         transform: `scale(${scale})`,
+        transitionDuration: ANIMATION_CONFIG.TRANSITION_DURATION,
+        transitionTimingFunction: ANIMATION_CONFIG.EASING,
+        backgroundColor: goBlack ? "#000" : "transparent",
       }}
     >
-      <div className={`rounded-full`} style={{ width: size, height: size }}>
-        <div className="blur-xl contrast-150 ">
+      <div className={`rounded-full`} style={{ width: SIZE, height: SIZE }}>
+        <div className="blur-lg contrast-[3] ">
           <div className="saturate-150">
-            <div ref={containerRef} style={{ width: size, height: size }} />
+            <div ref={containerRef} style={{ width: SIZE, height: SIZE }} />
           </div>
         </div>
       </div>
       <div
-        className="absolute inset-0 rounded-full"
+        className="absolute inset-0 rounded-full box-border transition-opacity duration-200"
         style={{
-          boxShadow: "inset -20px -20px 60px rgba(0, 0, 0, .5)",
+          boxShadow: goBlack
+            ? [
+                "inset 0 0 3px 2px rgba(0, 0, 0, .5)",
+                "inset 0 0 30px 50px rgba(0, 0, 0, .5)",
+              ].join(", ")
+            : [
+                "inset 0 0 2px 2px rgba(0, 0, 0, .05)",
+                "inset 0 -20px 20px 5px rgba(0, 0, 0, .1)",
+                "inset 0 40px 80px 50px rgba(255, 255, 255, .4)",
+              ].join(", "),
         }}
       />
     </div>

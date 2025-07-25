@@ -156,7 +156,7 @@ export const useRadioPlayerContextValue = (
       return {
         title: currentItem.title,
         artist: currentItem.artist,
-        album: "Radius",
+        album: "Radia",
         artwork: [
           {
             src: getThumbnailUrl(currentItem.id),
@@ -168,7 +168,7 @@ export const useRadioPlayerContextValue = (
     } else {
       return {
         title: "Your DJ is talking",
-        artist: "Radius",
+        artist: "Radia",
         artwork: [],
       };
     }

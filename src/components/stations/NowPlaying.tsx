@@ -13,9 +13,9 @@ import { SphereVisualizer } from "../visualizers/SphereVisualizer";
 const SCALE_CONFIG = {
   MIN_SCALE: 0.4, // Minimum scale when audio is quiet
   MAX_SCALE: 1.2, // Maximum scale when audio is loud
-  SMOOTHING_FACTOR: 0.3, // How quickly scale responds to changes (0-1, lower = smoother)
+  SMOOTHING_FACTOR: 0.7, // How quickly scale responds to changes (0-1, lower = smoother)
   BACKGROUND_SMOOTHING_FACTOR: 0.05, // Smoother factor for background sphere
-  DEFAULT_FREQUENCY: 50, // Fallback frequency when no audio data
+  DEFAULT_FREQUENCY: 0, // Fallback frequency when no audio data
 } as const;
 
 function ControlButton({
@@ -71,8 +71,8 @@ export default function NowPlaying() {
 
   const [dominantColors, setDominantColors] = useState<string[]>([]);
   const [smoothedScale, setSmoothedScale] = useState<number>(1);
-  const [backgroundSmoothedScale, setBackgroundSmoothedScale] =
-    useState<number>(1);
+  // const [backgroundSmoothedScale, setBackgroundSmoothedScale] =
+  //   useState<number>(1);
 
   const speed = (audioManager.visualizerData?.averageFrequency ?? 1) / 255;
 
@@ -82,8 +82,12 @@ export default function NowPlaying() {
       audioManager.visualizerData?.averageFrequency ??
       SCALE_CONFIG.DEFAULT_FREQUENCY;
     const scaleRange = SCALE_CONFIG.MAX_SCALE - SCALE_CONFIG.MIN_SCALE;
-    const targetScale =
-      SCALE_CONFIG.MIN_SCALE + (currentFrequency / 255) * scaleRange;
+
+    // Apply power curve to make it more sensitive at high frequencies
+    // Using exponent of 2.5 to create dramatic scaling at high loudness
+    const normalizedFrequency = currentFrequency / 255;
+    const curvedFrequency = Math.pow(normalizedFrequency, 2.5);
+    const targetScale = SCALE_CONFIG.MIN_SCALE + curvedFrequency * scaleRange;
 
     // Update main sphere scale
     setSmoothedScale((prev) => {
@@ -92,11 +96,11 @@ export default function NowPlaying() {
     });
 
     // Update background sphere scale with smoother transitions
-    setBackgroundSmoothedScale((prev) => {
-      return (
-        prev + (targetScale - prev) * SCALE_CONFIG.BACKGROUND_SMOOTHING_FACTOR
-      );
-    });
+    // setBackgroundSmoothedScale((prev) => {
+    //   return (
+    //     prev + (targetScale - prev) * SCALE_CONFIG.BACKGROUND_SMOOTHING_FACTOR
+    //   );
+    // });
   }, [audioManager.visualizerData?.averageFrequency]);
 
   useEffect(() => {
@@ -105,7 +109,7 @@ export default function NowPlaying() {
         setDominantColors
       );
     } else {
-      setDominantColors(["#000", "#111", "#222", "#111", "#000"]);
+      setDominantColors(["#000", "#777", "#666", "#555", "#666"]);
     }
   }, [currentItem]);
 
@@ -159,7 +163,7 @@ export default function NowPlaying() {
         </div>
       </div>
       <div className="w-full h-full flex flex-col gap-6 items-center justify-center relative pointer-events-none -z-10">
-        <div
+        {/* <div
           id="background-sphere"
           className="absolute scale-200 blur-3xl opacity-80"
         >
@@ -168,11 +172,12 @@ export default function NowPlaying() {
             speed={speed}
             scale={backgroundSmoothedScale}
           />
-        </div>
+        </div> */}
         <SphereVisualizer
           colors={dominantColors}
-          speed={speed * 1.5}
+          speed={speed}
           scale={smoothedScale}
+          goBlack={currentItem.type === "talk"}
         />
       </div>
     </div>

@@ -5,7 +5,7 @@ export const generateTalkSegmentPromptTemplate =
 
 ## Context
 
-You are part of an AI app named "Radius" that creates a radio broadcast on the fly.
+You are part of an AI app named "Radia" that creates a radio broadcast on the fly.
 
 ## Objective
 
