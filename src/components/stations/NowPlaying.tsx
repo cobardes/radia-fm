@@ -109,7 +109,7 @@ export default function NowPlaying() {
         setDominantColors
       );
     } else {
-      setDominantColors(["#000", "#777", "#666", "#555", "#666"]);
+      setDominantColors(["#222", "#777", "#666", "#666", "#666"]);
     }
   }, [currentItem]);
 
@@ -163,16 +163,6 @@ export default function NowPlaying() {
         </div>
       </div>
       <div className="w-full h-full flex flex-col gap-6 items-center justify-center relative pointer-events-none -z-10">
-        {/* <div
-          id="background-sphere"
-          className="absolute scale-200 blur-3xl opacity-80"
-        >
-          <SphereVisualizer
-            colors={dominantColors}
-            speed={speed}
-            scale={backgroundSmoothedScale}
-          />
-        </div> */}
         <SphereVisualizer
           colors={dominantColors}
           speed={speed}
