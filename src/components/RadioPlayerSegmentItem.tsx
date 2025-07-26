@@ -28,6 +28,8 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
     markItemAsLoaded,
     paused,
     audioManager,
+    playbackStarted,
+    setPlaybackStarted,
   } = useContext(RadioPlayerContext);
   const finished = useRef(false);
   const backgroundStarted = useRef(false);
@@ -149,7 +151,9 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
           // Volume is now controlled by Web Audio API gain node via loudness normalization
           console.log("playing main audio (delay)");
           audioRef.current.volume = SEGMENT_TARGET_VOLUME;
-          audioRef.current.play();
+          audioRef.current.play().then(() => {
+            setPlaybackStarted(true);
+          });
         }
       }, 1500);
     }
@@ -184,7 +188,9 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
       if (audioRef.current) {
         audioRef.current.volume = SEGMENT_TARGET_VOLUME;
       }
-      audioRef.current?.play();
+      audioRef.current?.play().then(() => {
+        setPlaybackStarted(true);
+      });
       backgroundRef.current?.play();
     }
   }, [paused, isActive]);

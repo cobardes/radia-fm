@@ -37,6 +37,8 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
     markItemAsLoaded,
     audioManager,
     paused,
+    playbackStarted,
+    setPlaybackStarted,
   } = useContext(RadioPlayerContext);
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -107,7 +109,9 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
         }, SEGMENT_ENDING_OFFSET_SECONDS * 1000);
       }
 
-      audioRef.current.play();
+      audioRef.current.play().then(() => {
+        setPlaybackStarted(true);
+      });
 
       // Mark that this song has started
       hasStarted.current = true;

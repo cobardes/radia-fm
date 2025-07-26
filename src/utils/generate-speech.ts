@@ -71,7 +71,7 @@ export async function generateSpeechBuffer(
     },
   };
 
-  const model = "gemini-2.5-pro-preview-tts";
+  const model = "gemini-2.5-flash-preview-tts";
   const contents = [
     {
       role: "user" as const,

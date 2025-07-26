@@ -42,71 +42,10 @@ const _createStation = async (
 
   const stationId = kebabCase(faker.word.words(3));
 
-  const greetingSegmentId = randomUUID().slice(0, 8);
-
-  console.log(chalk.yellow("Researching initial song..."));
-
-  const initialSongInfo = await groundedFlashModel.invoke(
-    `
-    Research the song ${initialSong.title} by ${initialSong.artists[0]} and write a brief 200 word paragraph about it. Return the paragraph and nothing else.
-    `,
-    { runName: "get-initial-song-info" }
-  );
-
-  const initialSongInfoText = getMessageContentText(initialSongInfo.content);
-
-  console.log(chalk.green(`Found initial song info: ${initialSongInfoText}`));
-  console.log(chalk.yellow("Generating greeting..."));
-
-  const greeting = await greetingModel.invoke(
-    await greetingPromptTemplate.invoke({
-      songTitle: initialSong.title,
-      artistName: initialSong.artists[0],
-      language,
-    }),
-    { runName: "generate-greeting" }
-  );
-
-  console.log(chalk.green(`Generated greeting: ${greeting.content}`));
-
-  await speeches.doc(greetingSegmentId).set({
-    text: greeting.content.toString(),
-    language,
-  });
-
-  console.log(chalk.green(`Saved greeting segment: ${greetingSegmentId}`));
-
-  const speechUrl = `/api/playback/segment/${greetingSegmentId}`;
-  const songUrl = `/api/playback/song/${initialSong.id}`;
-
-  const greetingSegment: StationQueueTalkSegment = {
-    id: greetingSegmentId,
-    type: "talk",
-    text: greeting.content.toString(),
-    audioUrl: speechUrl,
-  };
-
   const initialStation: Station = {
     id: stationId,
-    playlist: [
-      {
-        id: initialSong.id,
-        title: initialSong.title,
-        artist: initialSong.artists[0],
-        reason: `This song was selected by the user. ${initialSongInfoText}`,
-      },
-    ],
-    queue: [
-      greetingSegment,
-      {
-        type: "song",
-        id: initialSong.id,
-        title: initialSong.title,
-        artist: initialSong.artists[0],
-        reason: `This song was selected by the user. ${initialSongInfoText}`,
-        audioUrl: songUrl,
-      },
-    ],
+    playlist: [],
+    queue: [],
     isExtending: false,
     language,
     createdAt: new Date().toISOString(),
@@ -117,8 +56,85 @@ const _createStation = async (
 
   await stations.doc(stationId).set(initialStation);
 
-  // Extend station asynchronously
-  void extendStationQueue(stationId);
+  (async () => {
+    const greetingSegmentId = randomUUID().slice(0, 8);
+
+    console.log(chalk.yellow("Researching initial song..."));
+
+    const initialSongInfo = await groundedFlashModel.invoke(
+      `
+    Research the song ${initialSong.title} by ${initialSong.artists[0]} and write a brief 200 word paragraph about it. Return the paragraph and nothing else.
+    `,
+      { runName: "get-initial-song-info" }
+    );
+
+    const initialSongInfoText = getMessageContentText(initialSongInfo.content);
+
+    console.log(chalk.green(`Found initial song info: ${initialSongInfoText}`));
+    console.log(chalk.yellow("Generating greeting..."));
+
+    const greeting = await greetingModel.invoke(
+      await greetingPromptTemplate.invoke({
+        songTitle: initialSong.title,
+        artistName: initialSong.artists[0],
+        language,
+      }),
+      { runName: "generate-greeting" }
+    );
+
+    console.log(chalk.green(`Generated greeting: ${greeting.content}`));
+
+    await speeches.doc(greetingSegmentId).set({
+      text: greeting.content.toString(),
+      language,
+    });
+
+    console.log(chalk.green(`Saved greeting segment: ${greetingSegmentId}`));
+
+    const speechUrl = `/api/playback/segment/${greetingSegmentId}`;
+    const songUrl = `/api/playback/song/${initialSong.id}`;
+
+    const greetingSegment: StationQueueTalkSegment = {
+      id: greetingSegmentId,
+      type: "talk",
+      text: greeting.content.toString(),
+      audioUrl: speechUrl,
+    };
+
+    const initialStation: Station = {
+      id: stationId,
+      playlist: [
+        {
+          id: initialSong.id,
+          title: initialSong.title,
+          artist: initialSong.artists[0],
+          reason: `This song was selected by the user. ${initialSongInfoText}`,
+        },
+      ],
+      queue: [
+        greetingSegment,
+        {
+          type: "song",
+          id: initialSong.id,
+          title: initialSong.title,
+          artist: initialSong.artists[0],
+          reason: `This song was selected by the user. ${initialSongInfoText}`,
+          audioUrl: songUrl,
+        },
+      ],
+      isExtending: false,
+      language,
+      createdAt: new Date().toISOString(),
+      creatorId,
+      currentIndex: -1,
+      lastPlaybackUpdate: new Date().toISOString(),
+    };
+
+    await stations.doc(stationId).set(initialStation);
+
+    // Extend station asynchronously
+    void extendStationQueue(stationId);
+  })();
 
   return stationId;
 };

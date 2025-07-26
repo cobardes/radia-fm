@@ -18,6 +18,7 @@ interface RadioPlayerContextType {
   queue: StationQueue;
   currentIndex: number;
   currentItem: StationQueueItem | null;
+  readyToPlay: boolean;
   loadedItems: Set<string>;
   markItemAsLoaded: (itemId: string) => void;
   playNext: () => void;
@@ -27,6 +28,8 @@ interface RadioPlayerContextType {
   setPaused: (paused: boolean) => void;
   setAutoplayBlocked: (blocked: boolean) => void;
   isCreator: boolean;
+  playbackStarted: boolean;
+  setPlaybackStarted: (started: boolean) => void;
   // Audio manager functions
   audioManager: {
     visualizerData: {
@@ -60,6 +63,7 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
   queue: [],
   currentIndex: -1,
   currentItem: null,
+  readyToPlay: false,
   loadedItems: new Set(),
   markItemAsLoaded: () => {},
   playNext: () => {},
@@ -69,6 +73,8 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
   setPaused: () => {},
   setAutoplayBlocked: () => {},
   isCreator: false,
+  playbackStarted: false,
+  setPlaybackStarted: () => {},
   audioManager: {
     visualizerData: null,
     isSupported: false,
@@ -102,10 +108,16 @@ export const useRadioPlayerContextValue = (
   realtimeStation: RealtimeStation
 ) => {
   const { user } = useFirebaseAuth();
+
+  const [initialIndex, setInitialIndex] = useState<number | undefined>(
+    undefined
+  );
+
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const [loadedItems, setLoadedItems] = useState<Set<string>>(new Set());
   const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(false);
   const [paused, setPaused] = useState<boolean>(false);
+  const [playbackStarted, setPlaybackStarted] = useState<boolean>(false);
 
   const { station, extend } = realtimeStation;
 
@@ -115,6 +127,7 @@ export const useRadioPlayerContextValue = (
   // Initialize currentIndex from station data once
   useEffect(() => {
     if (station && station.currentIndex !== undefined) {
+      setInitialIndex(station.currentIndex);
       setCurrentIndex(station.currentIndex);
     }
   }, [station?.id]); // Only run when station changes, not on every station update
@@ -150,31 +163,27 @@ export const useRadioPlayerContextValue = (
   const queue = station?.queue ?? [];
   const currentItem = queue[currentIndex];
 
-  const readyForPlayback = useMemo(() => {
-    if (queue.length === 0) return false;
+  const readyToPlay = useMemo(() => {
+    if (queue.length === 0 || initialIndex === undefined) return false;
 
-    if (currentIndex === -1) {
-      // Need items 0 and 1 to be loaded
+    if (initialIndex === -1) {
       const item0 = queue[0];
       const item1 = queue[1];
 
-      const item0Loaded = item0 ? loadedItems.has(item0.id) : true;
-      const item1Loaded = item1 ? loadedItems.has(item1.id) : true;
+      const item0Loaded = item0 ? loadedItems.has(item0.id) : false;
+      const item1Loaded = item1 ? loadedItems.has(item1.id) : false;
 
       return item0Loaded && item1Loaded;
     } else {
-      // Need currentIndex and currentIndex + 1 to be loaded
-      const currentItem = queue[currentIndex];
-      const nextItem = queue[currentIndex + 1];
+      const firstItem = queue[initialIndex];
+      const secondItem = queue[initialIndex + 1];
 
-      const currentLoaded = currentItem
-        ? loadedItems.has(currentItem.id)
-        : true;
-      const nextLoaded = nextItem ? loadedItems.has(nextItem.id) : true;
+      const firstLoaded = firstItem ? loadedItems.has(firstItem.id) : false;
+      const secondLoaded = secondItem ? loadedItems.has(secondItem.id) : false;
 
-      return currentLoaded && nextLoaded;
+      return firstLoaded && secondLoaded;
     }
-  }, [queue, currentIndex, loadedItems]);
+  }, [queue, currentIndex, loadedItems, initialIndex]);
 
   const markItemAsLoaded = useCallback((itemId: string) => {
     setLoadedItems((prev) => new Set(prev).add(itemId));
@@ -243,12 +252,10 @@ export const useRadioPlayerContextValue = (
 
   /* Initial playback */
   useEffect(() => {
-    if (!readyForPlayback) return;
-
-    if (currentIndex === -1) {
+    if (readyToPlay && currentIndex === -1) {
       playNext();
     }
-  }, [currentIndex, readyForPlayback, playNext]);
+  }, [currentIndex, readyToPlay, playNext]);
 
   useEffect(() => {
     if (currentIndex >= queue.length - 2) {
@@ -268,6 +275,7 @@ export const useRadioPlayerContextValue = (
       queue,
       currentIndex,
       currentItem,
+      readyToPlay,
       loadedItems,
       markItemAsLoaded,
       playNext,
@@ -278,12 +286,14 @@ export const useRadioPlayerContextValue = (
       setAutoplayBlocked,
       isCreator,
       audioManager,
+      playbackStarted,
+      setPlaybackStarted,
     }),
     [
       queue,
-      readyForPlayback,
       currentIndex,
       currentItem,
+      readyToPlay,
       loadedItems,
       markItemAsLoaded,
       playNext,
@@ -294,6 +304,8 @@ export const useRadioPlayerContextValue = (
       setPaused,
       isCreator,
       audioManager,
+      playbackStarted,
+      setPlaybackStarted,
     ]
   );
 };

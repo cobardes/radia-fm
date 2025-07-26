@@ -67,18 +67,21 @@ function PlaybackItemInfo({ item }: { item: StationQueueItem }) {
 export default function NowPlaying() {
   const {
     currentItem,
+    queue,
     playNext,
     paused,
     setPaused,
     setAutoplayBlocked,
     autoplayBlocked,
+    playbackStarted,
+    readyToPlay,
   } = useRadioPlayer();
   const { audioManager } = useRadioPlayer();
 
   const [dominantColors, setDominantColors] = useState<
     [string, string, string, string, string, string, string, string]
   >(["#000", "#000", "#000", "#000", "#000", "#000", "#000", "#000"]);
-  const [smoothedScale, setSmoothedScale] = useState<number>(1);
+  const [smoothedScale, setSmoothedScale] = useState<number>(0.7);
 
   const speed =
     (audioManager.visualizerData?.averageFrequency ?? 0) / 255 + 0.2;
@@ -86,7 +89,7 @@ export default function NowPlaying() {
   // Smooth the scale based on audio intensity
   useEffect(() => {
     // Don't update scale when paused - freeze it at current value
-    if (paused) {
+    if (paused || !playbackStarted) {
       return;
     }
 
@@ -124,6 +127,8 @@ export default function NowPlaying() {
     }
   }, [currentItem]);
 
+  const creatingStation = queue.length === 0;
+  const loading = !creatingStation && !readyToPlay;
   const goBlack = !currentItem || currentItem.type === "talk";
 
   return (
@@ -139,38 +144,47 @@ export default function NowPlaying() {
         </Link>
       </div>
       <div className="absolute inset-0 top-auto flex items-end justify-between p-6 gap-3">
-        <div>{currentItem && <PlaybackItemInfo item={currentItem} />}</div>
-        <div className="flex gap-3">
-          {!currentItem || autoplayBlocked ? (
-            <ControlButton
-              icon="play_circle"
-              label="Iniciar estación"
-              onClick={() => {
-                setAutoplayBlocked(false);
-              }}
-              iconPosition="right"
-            />
-          ) : (
-            <>
-              <ControlButton
-                icon={paused ? "play_circle" : "pause_circle"}
-                label={paused ? "Reanudar" : "Pausar"}
-                onClick={() => {
-                  if (paused) {
-                    setPaused(false);
-                  } else {
-                    setPaused(true);
-                  }
-                }}
-              />
-              <ControlButton
-                icon="arrow_circle_right"
-                label="Saltar"
-                iconPosition="right"
-                onClick={playNext}
-              />
-            </>
+        <div>
+          {currentItem && <PlaybackItemInfo item={currentItem} />}
+          {creatingStation && (
+            <div className="text-sm text-black/60">Creando estación...</div>
           )}
+          {loading && <div className="text-sm text-black/60">Cargando...</div>}
+        </div>
+        <div className="flex gap-3">
+          {!creatingStation &&
+            (autoplayBlocked ? (
+              <ControlButton
+                icon="play_circle"
+                label="Iniciar estación"
+                onClick={() => {
+                  setAutoplayBlocked(false);
+                }}
+                iconPosition="right"
+              />
+            ) : (
+              currentItem && (
+                <>
+                  <ControlButton
+                    icon={paused ? "play_circle" : "pause_circle"}
+                    label={paused ? "Reanudar" : "Pausar"}
+                    onClick={() => {
+                      if (paused) {
+                        setPaused(false);
+                      } else {
+                        setPaused(true);
+                      }
+                    }}
+                  />
+                  <ControlButton
+                    icon="arrow_circle_right"
+                    label="Saltar"
+                    iconPosition="right"
+                    onClick={playNext}
+                  />
+                </>
+              )
+            ))}
         </div>
       </div>
       <div

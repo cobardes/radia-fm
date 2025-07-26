@@ -362,7 +362,7 @@ export const SphereVisualizer = ({
                 "inset 0 0 2px 2px rgba(0, 0, 0, .05)",
                 "inset 0 -20px 20px 5px rgba(0, 0, 0, .1)",
                 "inset 0 -5px 10px -5px rgba(0, 0, 0, .1)",
-                "inset 0 10px 40px 40px rgba(255, 255, 255, .3)",
+                "inset 0 10px 40px 40px rgba(255, 255, 255, .1)",
               ].join(", "),
         }}
       />

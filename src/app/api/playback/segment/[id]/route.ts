@@ -1,5 +1,5 @@
 import { speeches } from "@/server/db";
-import { generateSpeech } from "@/utils/generate-speech";
+import { generateSpeech } from "@/utils/generate-speech-elevenlabs";
 import fs from "fs";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
