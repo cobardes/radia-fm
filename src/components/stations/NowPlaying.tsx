@@ -15,10 +15,6 @@ const SCALE_CONFIG = {
   MAX_SCALE: 1.2, // Maximum scale when audio is loud
   SMOOTHING_FACTOR: 1, // How quickly scale responds to changes (0-1, lower = smoother)
   DEFAULT_FREQUENCY: 0, // Fallback frequency when no audio data
-  // Background sphere specific settings
-  BACKGROUND_MIN_SCALE: 0.4, // Lower minimum for background
-  BACKGROUND_MAX_SCALE: 1.2, // Higher maximum for background
-  BACKGROUND_SMOOTHING_FACTOR: 0.7, // Much smoother for background
 } as const;
 
 function ControlButton({
@@ -76,8 +72,6 @@ export default function NowPlaying() {
     [string, string, string, string, string]
   >(["#000", "#000", "#000", "#000", "#000"]);
   const [smoothedScale, setSmoothedScale] = useState<number>(1);
-  const [backgroundSmoothedScale, setBackgroundSmoothedScale] =
-    useState<number>(1);
 
   const speed =
     (audioManager.visualizerData?.averageFrequency ?? 1) / 255 + 0.2;
@@ -85,38 +79,17 @@ export default function NowPlaying() {
   // Smooth the scale based on audio intensity
   useEffect(() => {
     const currentFrequency =
-      audioManager.visualizerData?.averageFrequency ??
-      SCALE_CONFIG.DEFAULT_FREQUENCY;
-
-    // Apply power curve to make it more sensitive at high frequencies
-    // Using exponent of 2.5 to create dramatic scaling at high loudness
-    const normalizedFrequency = currentFrequency / 255;
-    const curvedFrequency = Math.pow(normalizedFrequency, 2.5);
+      (audioManager.visualizerData?.averageFrequency ??
+        SCALE_CONFIG.DEFAULT_FREQUENCY) / 255;
 
     // Calculate target scale for main sphere
     const scaleRange = SCALE_CONFIG.MAX_SCALE - SCALE_CONFIG.MIN_SCALE;
-    const targetScale = SCALE_CONFIG.MIN_SCALE + curvedFrequency * scaleRange;
-
-    // Calculate target scale for background sphere with different range
-    const backgroundScaleRange =
-      SCALE_CONFIG.BACKGROUND_MAX_SCALE - SCALE_CONFIG.BACKGROUND_MIN_SCALE;
-    const backgroundTargetScale =
-      SCALE_CONFIG.BACKGROUND_MIN_SCALE +
-      curvedFrequency * backgroundScaleRange;
+    const targetScale = SCALE_CONFIG.MIN_SCALE + currentFrequency * scaleRange;
 
     // Update main sphere scale
     setSmoothedScale((prev) => {
       // Exponential smoothing for smoother transitions
       return prev + (targetScale - prev) * SCALE_CONFIG.SMOOTHING_FACTOR;
-    });
-
-    // Update background sphere scale with smoother transitions
-    setBackgroundSmoothedScale((prev) => {
-      return (
-        prev +
-        (backgroundTargetScale - prev) *
-          SCALE_CONFIG.BACKGROUND_SMOOTHING_FACTOR
-      );
     });
   }, [audioManager.visualizerData?.averageFrequency]);
 
@@ -126,7 +99,7 @@ export default function NowPlaying() {
         setDominantColors
       );
     } else {
-      setDominantColors(["#000", "#777", "#000", "#666", "#555"]);
+      setDominantColors(["#333", "#777", "#444", "#666", "#555"]);
     }
   }, [currentItem]);
 

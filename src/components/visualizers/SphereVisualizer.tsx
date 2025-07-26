@@ -342,7 +342,7 @@ export const SphereVisualizer = ({
             <div
               className="absolute inset-0 rounded-full transition-colors duration-100 z-20"
               style={{
-                borderWidth: 15,
+                borderWidth: 20,
                 borderStyle: "solid",
                 borderColor: currentSphereColor,
               }}
