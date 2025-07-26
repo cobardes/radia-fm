@@ -30,7 +30,7 @@ const PARTICLE_CONFIG = {
 } as const;
 
 type SphereVisualizerProps = {
-  colors?: [string, string, string, string, string];
+  colors?: [string, string, string, string, string, string, string, string];
   speed?: number;
   scale?: number;
   goBlack?: boolean;
@@ -39,7 +39,7 @@ type SphereVisualizerProps = {
 export const SphereVisualizer = ({
   goBlack = false,
   scale = 1,
-  colors = ["#000", "#000", "#000", "#000", "#000"],
+  colors = ["#000", "#000", "#000", "#000", "#000", "#000", "#000", "#000"],
   speed = 1,
 }: SphereVisualizerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -82,7 +82,7 @@ export const SphereVisualizer = ({
       const interpolatedColors = colors.map((newColor, index) => {
         const oldColor = previousColors[index] || newColor;
         return mix(oldColor, newColor, progress);
-      }) as [string, string, string, string, string];
+      }) as [string, string, string, string, string, string, string, string];
 
       // Update the colors ref with interpolated values
       propsRef.current.colors = interpolatedColors;

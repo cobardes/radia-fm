@@ -1,17 +1,22 @@
+"use client";
+
 import {
   CreateStationErrorResponse,
   CreateStationRequest,
   CreateStationSuccessResponse,
 } from "@/app/api/stations/route";
+import { useFirebaseAuth } from "@/hooks/useFirebaseAuth";
 import { useMutation } from "@tanstack/react-query";
 
 const createStation = async (
-  createStationRequest: CreateStationRequest
+  createStationRequest: CreateStationRequest,
+  userToken: string
 ): Promise<CreateStationSuccessResponse> => {
   const response = await fetch("/api/stations", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${userToken}`,
     },
     body: JSON.stringify(createStationRequest),
   });
@@ -28,7 +33,16 @@ const createStation = async (
 };
 
 export const useCreateStationMutation = () => {
+  const { user } = useFirebaseAuth();
+
   return useMutation({
-    mutationFn: createStation,
+    mutationFn: async (createStationRequest: CreateStationRequest) => {
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const token = await user.getIdToken();
+      return createStation(createStationRequest, token);
+    },
   });
 };

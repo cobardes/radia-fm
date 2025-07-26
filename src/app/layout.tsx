@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "RAD.FM",
-  description: "THE MUSIC NEVER STOPS",
+  title: "rad(ia)",
+  description: "the generative radio station",
 };
 
 export default function RootLayout({

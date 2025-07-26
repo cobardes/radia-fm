@@ -33,7 +33,8 @@ const greetingModel = new ChatGoogleGenerativeAI({
 
 const _createStation = async (
   initialSong: Song,
-  language: StationLanguage
+  language: StationLanguage,
+  creatorId: string
 ): Promise<string> => {
   if (!initialSong || !initialSong.id) {
     throw new Error("Valid initialSong is required");
@@ -109,6 +110,9 @@ const _createStation = async (
     isExtending: false,
     language,
     createdAt: new Date().toISOString(),
+    creatorId,
+    currentIndex: -1,
+    lastPlaybackUpdate: new Date().toISOString(),
   };
 
   await stations.doc(stationId).set(initialStation);

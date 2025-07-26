@@ -2,6 +2,7 @@ import { createStation } from "@/server/actions/stations/create-station";
 import { stations } from "@/server/db";
 import { BaseErrorResponse, Song } from "@/types";
 import { Station, StationLanguage } from "@/types/station";
+import { getAuth } from "firebase-admin/auth";
 import { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -55,6 +56,18 @@ export async function POST(
   request: NextRequest
 ): Promise<NextResponse<CreateStationResponse>> {
   try {
+    // Verify Firebase Auth token
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" } as BaseErrorResponse, {
+        status: 401,
+      });
+    }
+
+    const token = authHeader.split("Bearer ")[1];
+    const decodedToken = await getAuth().verifyIdToken(token);
+    const userId = decodedToken.uid;
+
     const body: CreateStationRequest = await request.json();
 
     if (!body.seedSong || !body.seedSong.id) {
@@ -64,7 +77,7 @@ export async function POST(
       );
     }
 
-    const stationId = await createStation(body.seedSong, body.language);
+    const stationId = await createStation(body.seedSong, body.language, userId);
 
     return NextResponse.json({
       stationId,

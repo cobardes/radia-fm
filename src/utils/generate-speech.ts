@@ -32,7 +32,7 @@ const Voices: Record<StationLanguage, VoiceSettings> = {
     voiceName: "Enceladus",
     temperature: 1.5,
     instructions:
-      "You are having a conversation and speaking fast. Say this in an American accent:",
+      "You are having a conversation and speaking fast. Say this in an British accent:",
   },
   "Neutral Spanish": {
     voiceName: "Despina",

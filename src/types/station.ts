@@ -12,6 +12,9 @@ export interface Station {
   isExtending: boolean;
   language: StationLanguage;
   createdAt: string;
+  creatorId: string;
+  currentIndex: number;
+  lastPlaybackUpdate: string;
 }
 
 export type StationPlaylist = StationPlaylistItem[];

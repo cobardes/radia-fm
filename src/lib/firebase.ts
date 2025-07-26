@@ -1,4 +1,5 @@
 import { getApps, initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 // Your Firebase configuration
@@ -14,7 +15,8 @@ const firebaseConfig = {
 // Initialize Firebase (only once)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
 
-// Initialize Firestore
+// Initialize Firestore and Auth
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-export { db };
+export { auth, db };

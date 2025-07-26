@@ -69,12 +69,12 @@ export default function NowPlaying() {
   const { audioManager } = useRadioPlayer();
 
   const [dominantColors, setDominantColors] = useState<
-    [string, string, string, string, string]
-  >(["#000", "#000", "#000", "#000", "#000"]);
+    [string, string, string, string, string, string, string, string]
+  >(["#000", "#000", "#000", "#000", "#000", "#000", "#000", "#000"]);
   const [smoothedScale, setSmoothedScale] = useState<number>(1);
 
   const speed =
-    (audioManager.visualizerData?.averageFrequency ?? 1) / 255 + 0.2;
+    (audioManager.visualizerData?.averageFrequency ?? 0) / 255 + 0.2;
 
   // Smooth the scale based on audio intensity
   useEffect(() => {
@@ -99,7 +99,16 @@ export default function NowPlaying() {
         setDominantColors
       );
     } else {
-      setDominantColors(["#333", "#777", "#444", "#666", "#555"]);
+      setDominantColors([
+        "#333",
+        "#777",
+        "#444",
+        "#666",
+        "#555",
+        "#888",
+        "#222",
+        "#999",
+      ]);
     }
   }, [currentItem]);
 

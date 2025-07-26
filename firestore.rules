@@ -1,6 +1,16 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Stations - creators can write, everyone can read
+    match /stations/{stationId} {
+      allow read: if true;
+      allow create: if request.auth != null && 
+                    request.auth.uid == request.resource.data.creatorId;
+      allow update: if request.auth != null && 
+                    request.auth.uid == resource.data.creatorId;
+      allow delete: if false; // Prevent deletion for now
+    }
+
     // Session metadata - no client access (server-side only)
     match /sessions/{sessionId} {
       allow read, write: if false;
@@ -15,6 +25,11 @@ service cloud.firestore {
     // Talk segments - no client access (server-side only)
     // These are accessed via the API endpoint which generates speech on demand
     match /talkSegments/{segmentId} {
+      allow read, write: if false;
+    }
+
+    // Speeches collection - server-side only
+    match /speeches/{speechId} {
       allow read, write: if false;
     }
   }

@@ -1,7 +1,9 @@
 import { RealtimeStation } from "@/hooks/stations/useRealtimeStation";
 import { useAudioManager } from "@/hooks/useAudioManager";
+import { useFirebaseAuth } from "@/hooks/useFirebaseAuth";
 import { useMediaSession } from "@/hooks/useMediaSession";
 import { StationQueue, StationQueueItem } from "@/types/station";
+import { debounce } from "@/utils";
 import { getThumbnailUrl } from "@/utils/get-thumbnail-url";
 import {
   createContext,
@@ -23,6 +25,7 @@ interface RadioPlayerContextType {
   autoplayBlocked: boolean;
   paused: boolean;
   setPaused: (paused: boolean) => void;
+  isCreator: boolean;
   // Audio manager functions
   audioManager: {
     visualizerData: {
@@ -63,6 +66,7 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
   autoplayBlocked: false,
   paused: false,
   setPaused: () => {},
+  isCreator: false,
   audioManager: {
     visualizerData: null,
     isSupported: false,
@@ -95,12 +99,45 @@ async function canAutoplayAudio() {
 export const useRadioPlayerContextValue = (
   realtimeStation: RealtimeStation
 ) => {
+  const { user } = useFirebaseAuth();
   const [currentIndex, setCurrentIndex] = useState<number>(-1);
   const [loadedItems, setLoadedItems] = useState<Set<string>>(new Set());
   const [autoplayBlocked, setAutoplayBlocked] = useState<boolean>(false);
   const [paused, setPaused] = useState<boolean>(false);
 
   const { station, extend } = realtimeStation;
+
+  // Determine if current user is the creator
+  const isCreator = Boolean(user && station && station.creatorId === user.uid);
+
+  // Initialize currentIndex from station data once
+  useEffect(() => {
+    if (station && station.currentIndex !== undefined) {
+      setCurrentIndex(station.currentIndex);
+    }
+  }, [station?.id]); // Only run when station changes, not on every station update
+
+  // Debounced function to sync currentIndex to server
+  const syncCurrentIndex = useCallback(
+    debounce(async (newIndex: number) => {
+      if (!isCreator || !station || !user) return;
+
+      try {
+        const token = await user.getIdToken();
+        await fetch(`/api/stations/${station.id}/playback`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ currentIndex: newIndex }),
+        });
+      } catch (error) {
+        console.error("Failed to sync currentIndex:", error);
+      }
+    }, 1000), // Debounce by 1 second
+    [isCreator, station, user]
+  );
 
   // Initialize centralized audio manager
   const audioManager = useAudioManager({
@@ -147,10 +184,19 @@ export const useRadioPlayerContextValue = (
 
       if (allowed) {
         if (queue.length <= currentIndex + 1) return;
-        setCurrentIndex((prev) => prev + 1);
+
+        const newIndex = currentIndex + 1;
+
+        // Always update local state first
+        setCurrentIndex(newIndex);
+
+        // If creator, also sync to server
+        if (isCreator) {
+          syncCurrentIndex(newIndex);
+        }
       }
     });
-  }, [queue, currentIndex]);
+  }, [queue, currentIndex, isCreator, syncCurrentIndex]);
 
   const handlePlaybackError = useCallback(() => {
     setCurrentIndex((prev) => prev - 1);
@@ -226,6 +272,7 @@ export const useRadioPlayerContextValue = (
       autoplayBlocked,
       paused,
       setPaused,
+      isCreator,
       audioManager,
     }),
     [
@@ -240,6 +287,7 @@ export const useRadioPlayerContextValue = (
       autoplayBlocked,
       paused,
       setPaused,
+      isCreator,
       audioManager,
     ]
   );
