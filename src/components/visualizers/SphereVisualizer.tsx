@@ -1,7 +1,8 @@
 "use client";
 
+import { mix } from "color2k";
 import p5 from "p5";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SIZE = 200;
 
@@ -9,6 +10,7 @@ const SIZE = 200;
 const ANIMATION_CONFIG = {
   TRANSITION_DURATION: "100ms", // Tailwind duration class
   EASING: "ease-out", // CSS easing function
+  COLOR_TRANSITION_DURATION: 600, // 300ms transition duration
 } as const;
 
 // Particle animation constants
@@ -28,7 +30,7 @@ const PARTICLE_CONFIG = {
 } as const;
 
 type SphereVisualizerProps = {
-  colors?: string[];
+  colors?: [string, string, string, string, string];
   speed?: number;
   scale?: number;
   goBlack?: boolean;
@@ -37,16 +39,71 @@ type SphereVisualizerProps = {
 export const SphereVisualizer = ({
   goBlack = false,
   scale = 1,
-  colors = ["#3b82f6"],
+  colors = ["#000", "#000", "#000", "#000", "#000"],
   speed = 1,
 }: SphereVisualizerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const p5Instance = useRef<p5 | null>(null);
   const propsRef = useRef({ colors, speed });
+  const previousColorsRef = useRef(colors);
+  const transitionRef = useRef<{
+    startTime: number;
+    animationId: number | null;
+  }>({ startTime: 0, animationId: null });
+  const [currentSphereColor, setCurrentSphereColor] = useState(
+    colors[0] || "#000"
+  );
 
   // Update props ref when props change (without recreating sketch)
   useEffect(() => {
-    propsRef.current = { colors, speed };
+    propsRef.current.speed = speed;
+
+    // Store previous colors before starting transition
+    const previousColors = previousColorsRef.current;
+    previousColorsRef.current = colors;
+
+    // Cancel any ongoing transition
+    if (transitionRef.current.animationId) {
+      cancelAnimationFrame(transitionRef.current.animationId);
+    }
+
+    // Start transition animation
+    const startTime = performance.now();
+    transitionRef.current.startTime = startTime;
+
+    const animateTransition = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(
+        elapsed / ANIMATION_CONFIG.COLOR_TRANSITION_DURATION,
+        1
+      ); // 300ms transition
+
+      // Create interpolated colors using mix function
+      const interpolatedColors = colors.map((newColor, index) => {
+        const oldColor = previousColors[index] || newColor;
+        return mix(oldColor, newColor, progress);
+      }) as [string, string, string, string, string];
+
+      // Update the colors ref with interpolated values
+      propsRef.current.colors = interpolatedColors;
+
+      // Continue animation if not complete
+      if (progress < 1) {
+        transitionRef.current.animationId =
+          requestAnimationFrame(animateTransition);
+      } else {
+        transitionRef.current.animationId = null;
+      }
+    };
+
+    transitionRef.current.animationId =
+      requestAnimationFrame(animateTransition);
+
+    return () => {
+      if (transitionRef.current.animationId) {
+        cancelAnimationFrame(transitionRef.current.animationId);
+      }
+    };
   }, [colors, speed]);
 
   useEffect(() => {
@@ -196,6 +253,9 @@ export const SphereVisualizer = ({
           sphereColor = p.color(colors[0] || "#fff");
         }
 
+        // Update React state with current sphere color
+        setCurrentSphereColor(sphereColor.toString());
+
         p.fill(sphereColor);
         p.noStroke();
 
@@ -264,7 +324,7 @@ export const SphereVisualizer = ({
   return (
     <div
       id="sphere-visualizer"
-      className={`rounded-full bg-transparent transition-transform overflow-hidden`}
+      className={`rounded-full bg-transparent transition-transform overflow-hidden relative`}
       style={{
         width: SIZE,
         height: SIZE,
@@ -275,14 +335,23 @@ export const SphereVisualizer = ({
       }}
     >
       <div className={`rounded-full`} style={{ width: SIZE, height: SIZE }}>
-        <div className="contrast-[2.5]">
+        <div className="contrast-[3]">
           <div className="blur-lg">
             <div ref={containerRef} style={{ width: SIZE, height: SIZE }} />
+            {/* Background div with synced sphere color */}
+            <div
+              className="absolute inset-0 rounded-full transition-colors duration-100 z-20"
+              style={{
+                borderWidth: 15,
+                borderStyle: "solid",
+                borderColor: currentSphereColor,
+              }}
+            />
           </div>
         </div>
       </div>
       <div
-        className="absolute inset-0 rounded-full box-border transition-opacity duration-200"
+        className="absolute inset-0 rounded-full box-border transition-all duration-600 z-30"
         style={{
           boxShadow: goBlack
             ? [
@@ -292,7 +361,8 @@ export const SphereVisualizer = ({
             : [
                 "inset 0 0 2px 2px rgba(0, 0, 0, .05)",
                 "inset 0 -20px 20px 5px rgba(0, 0, 0, .1)",
-                "inset 0 20px 40px 40px rgba(255, 255, 255, .2)",
+                "inset 0 -5px 10px -5px rgba(0, 0, 0, .1)",
+                "inset 0 10px 40px 40px rgba(255, 255, 255, .3)",
               ].join(", "),
         }}
       />

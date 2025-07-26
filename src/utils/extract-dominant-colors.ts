@@ -37,17 +37,28 @@ const calculateVibrancy = (r: number, g: number, b: number): number => {
   return saturation * lightnessPenalty;
 };
 
-export const extractDominantColors = (imageUrl: string): Promise<string[]> => {
+export const extractDominantColors = (
+  imageUrl: string
+): Promise<[string, string, string, string, string]> => {
   return new Promise((resolve) => {
     const img = document.createElement("img");
     img.crossOrigin = "anonymous";
+
+    // Fallback colors to use when we can't extract enough colors
+    const fallbackColors: [string, string, string, string, string] = [
+      "#6B7280", // Gray-500
+      "#9CA3AF", // Gray-400
+      "#D1D5DB", // Gray-300
+      "#E5E7EB", // Gray-200
+      "#F3F4F6", // Gray-100
+    ];
 
     img.onload = () => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
 
       if (!ctx) {
-        resolve([]);
+        resolve(fallbackColors);
         return;
       }
 
@@ -81,11 +92,11 @@ export const extractDominantColors = (imageUrl: string): Promise<string[]> => {
           const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
           // Skip colors that are too dark (brightness < 0.2)
-          if (brightness < 0.3 || brightness > 0.9) continue;
+          if (brightness < 0.25 || brightness > 0.9) continue;
 
           // Calculate vibrancy and filter out low-vibrancy colors early
           const vibrancy = calculateVibrancy(r, g, b);
-          if (vibrancy < 0.3) continue;
+          if (vibrancy < 0.2) continue;
 
           // Group similar colors by reducing precision
           const groupedR = Math.floor(r / 32) * 32;
@@ -113,7 +124,7 @@ export const extractDominantColors = (imageUrl: string): Promise<string[]> => {
           .slice(0, 5);
 
         if (sortedByFrequency.length === 0) {
-          resolve([]);
+          resolve(fallbackColors);
           return;
         }
 
@@ -126,15 +137,21 @@ export const extractDominantColors = (imageUrl: string): Promise<string[]> => {
           .sort((a, b) => b.vibrancy - a.vibrancy)
           .map(({ color }) => color);
 
-        resolve(sortedByVibrancy);
+        // Ensure we always have exactly 5 colors by padding with fallbacks
+        const paddedColors = [...sortedByVibrancy];
+        while (paddedColors.length < 5) {
+          paddedColors.push(fallbackColors[paddedColors.length]);
+        }
+
+        resolve(paddedColors as [string, string, string, string, string]);
       } catch (error) {
         console.warn("Could not extract colors from image:", error);
-        resolve([]);
+        resolve(fallbackColors);
       }
     };
 
     img.onerror = () => {
-      resolve([]);
+      resolve(fallbackColors);
     };
 
     img.src = imageUrl;
