@@ -41,6 +41,7 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const finished = useRef(false);
+  const hasStarted = useRef(false);
 
   const isActive = currentItem?.id === item.id;
   const isLoaded = loadedItems.has(item.id);
@@ -85,8 +86,11 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
       const previousItem = currentIndex > 0 ? queue[currentIndex - 1] : null;
       const previousItemIsSong = previousItem?.type === "song";
 
-      if (previousItemIsSong) {
-        // If previous item was a song, start at target volume immediately
+      // Skip fade-in if this is a resume or if previous item was a song
+      const shouldSkipFadeIn = hasStarted.current || previousItemIsSong;
+
+      if (shouldSkipFadeIn) {
+        // Start at target volume immediately (resume or previous was song)
         audioRef.current.volume = TARGET_VOLUME;
       } else {
         // If previous item was a segment (or no previous item), fade in
@@ -105,6 +109,9 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
 
       audioRef.current.play();
 
+      // Mark that this song has started
+      hasStarted.current = true;
+
       // Start centralized visualization
       audioManager.startVisualization();
     }
@@ -116,6 +123,13 @@ function RadioPlayerSongItem({ item, index }: RadioPlayerSongItemProps) {
       finished.current = true;
     }
   }, [currentIndex, index]);
+
+  // Reset hasStarted flag when this item becomes active (new song)
+  useEffect(() => {
+    if (isActive) {
+      hasStarted.current = false;
+    }
+  }, [isActive, item.id]);
 
   usePauseHandler(audioRef, isActive);
 
