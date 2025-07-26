@@ -65,7 +65,14 @@ function PlaybackItemInfo({ item }: { item: StationQueueItem }) {
 }
 
 export default function NowPlaying() {
-  const { currentItem, playNext, paused, setPaused } = useRadioPlayer();
+  const {
+    currentItem,
+    playNext,
+    paused,
+    setPaused,
+    setAutoplayBlocked,
+    autoplayBlocked,
+  } = useRadioPlayer();
   const { audioManager } = useRadioPlayer();
 
   const [dominantColors, setDominantColors] = useState<
@@ -78,6 +85,11 @@ export default function NowPlaying() {
 
   // Smooth the scale based on audio intensity
   useEffect(() => {
+    // Don't update scale when paused - freeze it at current value
+    if (paused) {
+      return;
+    }
+
     const currentFrequency =
       (audioManager.visualizerData?.averageFrequency ??
         SCALE_CONFIG.DEFAULT_FREQUENCY) / 255;
@@ -91,7 +103,7 @@ export default function NowPlaying() {
       // Exponential smoothing for smoother transitions
       return prev + (targetScale - prev) * SCALE_CONFIG.SMOOTHING_FACTOR;
     });
-  }, [audioManager.visualizerData?.averageFrequency]);
+  }, [audioManager.visualizerData?.averageFrequency, paused]);
 
   useEffect(() => {
     if (currentItem && currentItem.type === "song") {
@@ -129,11 +141,13 @@ export default function NowPlaying() {
       <div className="absolute inset-0 top-auto flex items-end justify-between p-6 gap-3">
         <div>{currentItem && <PlaybackItemInfo item={currentItem} />}</div>
         <div className="flex gap-3">
-          {!currentItem ? (
+          {!currentItem || autoplayBlocked ? (
             <ControlButton
               icon="play_circle"
               label="Iniciar estación"
-              onClick={playNext}
+              onClick={() => {
+                setAutoplayBlocked(false);
+              }}
               iconPosition="right"
             />
           ) : (
@@ -160,15 +174,15 @@ export default function NowPlaying() {
         </div>
       </div>
       <div
-        className={`w-full h-full flex flex-col gap-6 items-center justify-center relative -z-10 transition-all duration-200 ease-out ${
-          paused ? "blur-3xl contrast-200 opacity-20" : "blur-none opacity-100"
+        className={`w-full h-full flex flex-col gap-6 items-center justify-center relative -z-10 transition-all duration-200  ${
+          paused ? "opacity-50 " : ""
         }`}
       >
         <div className="cursor-pointer">
           <SphereVisualizer
             colors={dominantColors}
             speed={speed}
-            scale={paused ? 3 : smoothedScale}
+            scale={smoothedScale}
             goBlack={goBlack}
           />
           <div
@@ -180,7 +194,7 @@ export default function NowPlaying() {
           >
             <SphereVisualizer
               colors={dominantColors}
-              scale={paused ? 0.5 : Math.max(smoothedScale, 0.5)}
+              scale={Math.max(smoothedScale, 0.5)}
               goBlack={goBlack}
             />
           </div>

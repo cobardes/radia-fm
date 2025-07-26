@@ -4,7 +4,11 @@ import RadioPlayerSegmentItem from "./RadioPlayerSegmentItem";
 import RadioPlayerSongItem from "./RadioPlayerSongItem";
 
 function RadioPlayer() {
-  const { queue } = useContext(RadioPlayerContext);
+  const { queue, autoplayBlocked } = useContext(RadioPlayerContext);
+
+  if (autoplayBlocked) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col gap-4">

@@ -25,6 +25,7 @@ interface RadioPlayerContextType {
   autoplayBlocked: boolean;
   paused: boolean;
   setPaused: (paused: boolean) => void;
+  setAutoplayBlocked: (blocked: boolean) => void;
   isCreator: boolean;
   // Audio manager functions
   audioManager: {
@@ -66,6 +67,7 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
   autoplayBlocked: false,
   paused: false,
   setPaused: () => {},
+  setAutoplayBlocked: () => {},
   isCreator: false,
   audioManager: {
     visualizerData: null,
@@ -179,24 +181,19 @@ export const useRadioPlayerContextValue = (
   }, []);
 
   const playNext = useCallback(() => {
-    canAutoplayAudio().then((allowed) => {
-      setAutoplayBlocked(!allowed);
+    if (autoplayBlocked) return;
+    if (queue.length <= currentIndex + 1) return;
 
-      if (allowed) {
-        if (queue.length <= currentIndex + 1) return;
+    const newIndex = currentIndex + 1;
 
-        const newIndex = currentIndex + 1;
+    // Always update local state first
+    setCurrentIndex(newIndex);
 
-        // Always update local state first
-        setCurrentIndex(newIndex);
-
-        // If creator, also sync to server
-        if (isCreator) {
-          syncCurrentIndex(newIndex);
-        }
-      }
-    });
-  }, [queue, currentIndex, isCreator, syncCurrentIndex]);
+    // If creator, also sync to server
+    if (isCreator) {
+      syncCurrentIndex(newIndex);
+    }
+  }, [queue, currentIndex, isCreator, syncCurrentIndex, autoplayBlocked]);
 
   const handlePlaybackError = useCallback(() => {
     setCurrentIndex((prev) => prev - 1);
@@ -259,6 +256,12 @@ export const useRadioPlayerContextValue = (
     }
   }, [currentIndex, queue, extend]);
 
+  useEffect(() => {
+    canAutoplayAudio().then((allowed) => {
+      setAutoplayBlocked(!allowed);
+    });
+  }, []);
+
   // Memoize the context value to prevent unnecessary re-renders
   return useMemo(
     () => ({
@@ -272,6 +275,7 @@ export const useRadioPlayerContextValue = (
       autoplayBlocked,
       paused,
       setPaused,
+      setAutoplayBlocked,
       isCreator,
       audioManager,
     }),
@@ -285,6 +289,7 @@ export const useRadioPlayerContextValue = (
       playNext,
       handlePlaybackError,
       autoplayBlocked,
+      setAutoplayBlocked,
       paused,
       setPaused,
       isCreator,
