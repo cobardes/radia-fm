@@ -30,7 +30,7 @@ function ControlButton({
 }) {
   return (
     <button
-      className={`bg-white text-black py-2 px-4 cursor-pointer rounded-full uppercase font-mono font-semibold tracking-wide text-sm flex items-center gap-2 active:bg-black active:text-white hover:-translate-y-1 hover:shadow-md transition-all duration-300 shadow-neutral-400 ${
+      className={`bg-white text-black py-2 px-4 cursor-pointer rounded-full uppercase font-mono font-semibold tracking-wide text-sm flex items-center gap-2 active:bg-black active:text-white shadow-neutral-400 ${
         iconPosition === "left" ? "pl-2.5" : "pr-2.5"
       }`}
       onClick={onClick}
@@ -103,18 +103,7 @@ export default function NowPlaying() {
     }
   }, [currentItem]);
 
-  if (!currentItem) {
-    return (
-      <div className="w-screen h-screen flex items-center justify-center">
-        <ControlButton
-          icon="play_circle"
-          label="Escuchar"
-          onClick={playNext}
-          iconPosition="right"
-        />
-      </div>
-    );
-  }
+  const goBlack = !currentItem || currentItem.type === "talk";
 
   return (
     <div className="w-screen h-screen">
@@ -129,48 +118,61 @@ export default function NowPlaying() {
         </Link>
       </div>
       <div className="absolute inset-0 top-auto flex items-end justify-between p-6 gap-3">
-        <div>
-          <PlaybackItemInfo item={currentItem} />
-        </div>
+        <div>{currentItem && <PlaybackItemInfo item={currentItem} />}</div>
         <div className="flex gap-3">
-          <ControlButton
-            icon={paused ? "play_circle" : "pause_circle"}
-            label={paused ? "Reanudar" : "Pausar"}
-            onClick={() => {
-              if (paused) {
-                setPaused(false);
-              } else {
-                setPaused(true);
-              }
-            }}
-          />
-          <ControlButton
-            icon="arrow_circle_right"
-            label="Saltar"
-            iconPosition="right"
-            onClick={playNext}
-          />
+          {!currentItem ? (
+            <ControlButton
+              icon="play_circle"
+              label="Iniciar estación"
+              onClick={playNext}
+              iconPosition="right"
+            />
+          ) : (
+            <>
+              <ControlButton
+                icon={paused ? "play_circle" : "pause_circle"}
+                label={paused ? "Reanudar" : "Pausar"}
+                onClick={() => {
+                  if (paused) {
+                    setPaused(false);
+                  } else {
+                    setPaused(true);
+                  }
+                }}
+              />
+              <ControlButton
+                icon="arrow_circle_right"
+                label="Saltar"
+                iconPosition="right"
+                onClick={playNext}
+              />
+            </>
+          )}
         </div>
       </div>
-      <div className="w-full h-full flex flex-col gap-6 items-center justify-center relative -z-10">
+      <div
+        className={`w-full h-full flex flex-col gap-6 items-center justify-center relative -z-10 transition-all duration-200 ease-out ${
+          paused ? "blur-3xl contrast-200 opacity-20" : "blur-none opacity-100"
+        }`}
+      >
         <div className="cursor-pointer">
           <SphereVisualizer
             colors={dominantColors}
             speed={speed}
-            scale={paused ? 0.2 : smoothedScale}
-            goBlack={currentItem.type === "talk"}
+            scale={paused ? 3 : smoothedScale}
+            goBlack={goBlack}
           />
           <div
             id="background-sphere"
             className="absolute inset-0 flex items-center justify-center blur-2xl -z-20 transition-opacity duration-200"
             style={{
-              opacity: currentItem.type === "talk" ? 0 : 0.5,
+              opacity: goBlack ? 0 : 1,
             }}
           >
             <SphereVisualizer
               colors={dominantColors}
-              scale={paused ? 0.2 : smoothedScale}
-              goBlack={currentItem.type === "talk"}
+              scale={paused ? 0.5 : Math.max(smoothedScale, 0.5)}
+              goBlack={goBlack}
             />
           </div>
         </div>

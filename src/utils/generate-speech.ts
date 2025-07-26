@@ -6,17 +6,11 @@ import mime from "mime";
 import { convertToMp3 } from "./mp3-converter";
 import { convertToWav } from "./wav-converter";
 
-interface GenerateSpeechOptions {
-  temperature?: number;
-  voiceName?: string;
-}
-
 export async function generateSpeech(
   prompt: string,
-  language: StationLanguage,
-  options: GenerateSpeechOptions = {}
+  language: StationLanguage
 ): Promise<ReadableStream<Uint8Array>> {
-  const buffer = await generateSpeechBuffer(prompt, language, options);
+  const buffer = await generateSpeechBuffer(prompt, language);
 
   // Convert Buffer to ReadableStream
   return new ReadableStream({
@@ -27,19 +21,39 @@ export async function generateSpeech(
   });
 }
 
-const Voices: Record<StationLanguage, string> = {
-  "British English": "Despina",
-  "Neutral Spanish": "Despina",
-  "Chilean Spanish": "Iapetus",
+interface VoiceSettings {
+  voiceName: string;
+  temperature: number;
+  instructions: string;
+}
+
+const Voices: Record<StationLanguage, VoiceSettings> = {
+  "British English": {
+    voiceName: "Enceladus",
+    temperature: 1.5,
+    instructions:
+      "You are having a conversation and speaking fast. Say this in an American accent:",
+  },
+  "Neutral Spanish": {
+    voiceName: "Despina",
+    temperature: 1.3,
+    instructions:
+      "Speak in a very fast and casual manner, like if you were talking to a friend.",
+  },
+  "Chilean Spanish": {
+    voiceName: "Iapetus",
+    temperature: 1.3,
+    instructions:
+      "Speak in a very fast and casual manner, like if you were talking to a friend. You have a very thick Chilean accent.",
+  },
 };
 
 // Helper function to generate speech as buffer (main implementation)
 export async function generateSpeechBuffer(
   prompt: string,
-  language: StationLanguage,
-  options: GenerateSpeechOptions = {}
+  language: StationLanguage
 ): Promise<Buffer> {
-  const { temperature = 1.3, voiceName = Voices[language] } = options;
+  const { voiceName, temperature, instructions } = Voices[language];
 
   const ai = new GoogleGenAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || "",
@@ -63,14 +77,7 @@ export async function generateSpeechBuffer(
       role: "user" as const,
       parts: [
         {
-          text: `Speak in a very fast and casual manner, like if you were talking to a friend. You have a very thick ${
-            language.split(" ")[0]
-          } accent. Read the following segment:
-
-          ${prompt}
-          
-          (brief silence)
-          (Remember you have a thick ${language.split(" ")[0]} accent.)`,
+          text: `${instructions} ${prompt}`,
         },
       ],
     },

@@ -1,6 +1,5 @@
 import { speeches } from "@/server/db";
-import { generateSpeech as generateSpeechGemini } from "@/utils/generate-speech";
-import { generateSpeech } from "@/utils/generate-speech-elevenlabs";
+import { generateSpeech } from "@/utils/generate-speech";
 import fs from "fs";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
@@ -40,10 +39,15 @@ export async function GET(
       }
 
       // Get the streaming audio response from ElevenLabs
-      const audioStream =
-        segmentData.language === "Chilean Spanish"
-          ? await generateSpeechGemini(segmentData.text, segmentData.language)
-          : await generateSpeech(segmentData.text, segmentData.language);
+      // const audioStream =
+      //   segmentData.language === "Chilean Spanish"
+      //     ? await generateSpeechGemini(segmentData.text, segmentData.language)
+      //     : await generateSpeech(segmentData.text, segmentData.language);
+
+      const audioStream = await generateSpeech(
+        segmentData.text,
+        segmentData.language
+      );
 
       // Save the stream to file
       const writer = fs.createWriteStream(outputPath);

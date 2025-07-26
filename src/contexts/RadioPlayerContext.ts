@@ -111,15 +111,31 @@ export const useRadioPlayerContextValue = (
   const queue = station?.queue ?? [];
   const currentItem = queue[currentIndex];
 
-  const isQueueValid = useMemo(() => {
-    return (
-      queue.length > 0 &&
-      queue[0].type === "talk" &&
-      queue[1].type === "song" &&
-      loadedItems.has(queue[0].id) &&
-      loadedItems.has(queue[1].id)
-    );
-  }, [queue, loadedItems]);
+  const readyForPlayback = useMemo(() => {
+    if (queue.length === 0) return false;
+
+    if (currentIndex === -1) {
+      // Need items 0 and 1 to be loaded
+      const item0 = queue[0];
+      const item1 = queue[1];
+
+      const item0Loaded = item0 ? loadedItems.has(item0.id) : true;
+      const item1Loaded = item1 ? loadedItems.has(item1.id) : true;
+
+      return item0Loaded && item1Loaded;
+    } else {
+      // Need currentIndex and currentIndex + 1 to be loaded
+      const currentItem = queue[currentIndex];
+      const nextItem = queue[currentIndex + 1];
+
+      const currentLoaded = currentItem
+        ? loadedItems.has(currentItem.id)
+        : true;
+      const nextLoaded = nextItem ? loadedItems.has(nextItem.id) : true;
+
+      return currentLoaded && nextLoaded;
+    }
+  }, [queue, currentIndex, loadedItems]);
 
   const markItemAsLoaded = useCallback((itemId: string) => {
     setLoadedItems((prev) => new Set(prev).add(itemId));
@@ -184,12 +200,12 @@ export const useRadioPlayerContextValue = (
 
   /* Initial playback */
   useEffect(() => {
-    if (!isQueueValid) return;
+    if (!readyForPlayback) return;
 
     if (currentIndex === -1) {
       playNext();
     }
-  }, [currentIndex, isQueueValid, playNext]);
+  }, [currentIndex, readyForPlayback, playNext]);
 
   useEffect(() => {
     if (currentIndex >= queue.length - 2) {
@@ -214,6 +230,7 @@ export const useRadioPlayerContextValue = (
     }),
     [
       queue,
+      readyForPlayback,
       currentIndex,
       currentItem,
       loadedItems,
