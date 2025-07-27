@@ -8,6 +8,24 @@
 @theme inline {
   --font-sans: var(--font-roboto-flex);
   --font-mono: var(--font-geist-mono);
+
+  --animate-soft-pulse: soft-pulse 2s infinite;
+
+  @keyframes soft-pulse {
+    0%,
+    100% {
+      opacity: 0.4;
+      transform: scale(0.3);
+      animation-timing-function: ease-in-out;
+      filter: blur(20px);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(0.45);
+      animation-timing-function: ease-in-out;
+      filter: blur(0px);
+    }
+  }
 }
 
 body {
