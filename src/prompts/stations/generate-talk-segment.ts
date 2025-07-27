@@ -18,7 +18,7 @@ You are part of an AI app named "Radia" that creates a radio broadcast on the fl
 ## Notes
 
 - The segment must be in {language}.
-- Your segment should be no longer than 150 words in 1 or 2 paragraphs.
+- Your segment should be no longer than 100 words.
 - Always introduce stutters and filler words to make the script more natural.
 - Return the final response as plain text, containing only the written segment.
 
