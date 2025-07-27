@@ -4,62 +4,28 @@ import { useRadioPlayer } from "@/contexts/RadioPlayerContext";
 import { StationQueueItem } from "@/types/station";
 import { extractDominantColors } from "@/utils/extract-dominant-colors";
 import { getThumbnailUrl } from "@/utils/get-thumbnail-url";
-import { MaterialSymbol } from "material-symbols";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { SphereVisualizer } from "../visualizers/SphereVisualizer";
+import { ControlButton } from "./ControlButton";
+import { StationVisualizer } from "./StationVisualizer";
 
 // Audio-responsive scale animation constants
 const SCALE_CONFIG = {
-  MIN_SCALE: 0.4, // Minimum scale when audio is quiet
-  MAX_SCALE: 1.2, // Maximum scale when audio is loud
+  MIN_SCALE: 0.3, // Minimum scale when audio is quiet
+  MAX_SCALE: 1.6, // Maximum scale when audio is loud
   SMOOTHING_FACTOR: 1, // How quickly scale responds to changes (0-1, lower = smoother)
   DEFAULT_FREQUENCY: 0, // Fallback frequency when no audio data
 } as const;
 
-function ControlButton({
-  icon,
-  iconPosition = "left",
-  label,
-  onClick,
-}: {
-  icon: MaterialSymbol;
-  iconPosition?: "left" | "right";
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      className={`bg-white text-black py-2 px-4 cursor-pointer rounded-full uppercase font-mono font-semibold tracking-wide text-sm flex items-center gap-2 active:bg-black active:text-white shadow-neutral-400 ${
-        iconPosition === "left" ? "pl-2.5" : "pr-2.5"
-      }`}
-      onClick={onClick}
-    >
-      {iconPosition === "left" && (
-        <span className="material-symbols-outlined">{icon}</span>
-      )}
-      <span>{label}</span>
-      {iconPosition === "right" && (
-        <span className="material-symbols-outlined">{icon}</span>
-      )}
-    </button>
-  );
-}
-
 function PlaybackItemInfo({ item }: { item: StationQueueItem }) {
   if (item.type === "talk") {
-    return null;
+    return <div className="flex flex-col font-medium">DJ Commentary</div>;
   }
 
   return (
     <div className="flex flex-col">
       <div className="text-sm text-black/60">{item.artist}</div>
-      <div className="flex items-center gap-2">
-        <div className="text font-medium">{item.title}</div>
-        <span className="material-symbols-outlined text-xl! font-medium!">
-          info
-        </span>
-      </div>
+      <div className="text font-medium">{item.title}</div>
     </div>
   );
 }
@@ -75,6 +41,7 @@ export default function NowPlaying() {
     autoplayBlocked,
     playbackStarted,
     readyToPlay,
+    statusMessage,
   } = useRadioPlayer();
   const { audioManager } = useRadioPlayer();
 
@@ -128,8 +95,11 @@ export default function NowPlaying() {
   }, [currentItem]);
 
   const creatingStation = queue.length === 0;
-  const loading = !creatingStation && !readyToPlay;
+  const loadingMedia =
+    !creatingStation && !readyToPlay && !autoplayBlocked && !currentItem;
   const goBlack = !currentItem || currentItem.type === "talk";
+
+  const busy = creatingStation || loadingMedia;
 
   return (
     <div className="w-screen h-screen">
@@ -138,7 +108,7 @@ export default function NowPlaying() {
           <span>
             rad(ia){" "}
             <span className="text-xs text-black/60 font-normal">
-              de cobardes.org
+              experimental
             </span>
           </span>
         </Link>
@@ -146,17 +116,22 @@ export default function NowPlaying() {
       <div className="absolute inset-0 top-auto flex items-end justify-between p-6 gap-3">
         <div>
           {currentItem && <PlaybackItemInfo item={currentItem} />}
-          {creatingStation && (
-            <div className="text-sm text-black/60">Creando estación...</div>
-          )}
-          {loading && <div className="text-sm text-black/60">Cargando...</div>}
+          {queue.length === 0 ? (
+            <div className="text-sm text-black/60 animate-pulse">
+              {statusMessage}
+            </div>
+          ) : loadingMedia ? (
+            <div className="text-sm text-black/60 animate-pulse">
+              Loading tracks
+            </div>
+          ) : null}
         </div>
         <div className="flex gap-3">
           {!creatingStation &&
             (autoplayBlocked ? (
               <ControlButton
                 icon="play_circle"
-                label="Iniciar estación"
+                label="Play this station"
                 onClick={() => {
                   setAutoplayBlocked(false);
                 }}
@@ -167,7 +142,7 @@ export default function NowPlaying() {
                 <>
                   <ControlButton
                     icon={paused ? "play_circle" : "pause_circle"}
-                    label={paused ? "Reanudar" : "Pausar"}
+                    label={paused ? "Resume" : "Pause"}
                     onClick={() => {
                       if (paused) {
                         setPaused(false);
@@ -178,7 +153,7 @@ export default function NowPlaying() {
                   />
                   <ControlButton
                     icon="arrow_circle_right"
-                    label="Saltar"
+                    label="Skip"
                     iconPosition="right"
                     onClick={playNext}
                   />
@@ -187,33 +162,7 @@ export default function NowPlaying() {
             ))}
         </div>
       </div>
-      <div
-        className={`w-full h-full flex flex-col gap-6 items-center justify-center relative -z-10 transition-all duration-200  ${
-          paused ? "opacity-50 " : ""
-        }`}
-      >
-        <div className="cursor-pointer">
-          <SphereVisualizer
-            colors={dominantColors}
-            speed={speed}
-            scale={smoothedScale}
-            goBlack={goBlack}
-          />
-          <div
-            id="background-sphere"
-            className="absolute inset-0 flex items-center justify-center blur-2xl -z-20 transition-opacity duration-200"
-            style={{
-              opacity: goBlack ? 0 : 1,
-            }}
-          >
-            <SphereVisualizer
-              colors={dominantColors}
-              scale={Math.max(smoothedScale, 0.5)}
-              goBlack={goBlack}
-            />
-          </div>
-        </div>
-      </div>
+      <StationVisualizer />
     </div>
   );
 }

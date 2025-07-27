@@ -29,11 +29,23 @@ const PARTICLE_CONFIG = {
   Z_ANIMATION_FREQUENCY: 0.2, // How fast spheres move through z-space
 } as const;
 
+export type SphereVisualizerColors = [
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string,
+  string
+];
+
 type SphereVisualizerProps = {
-  colors?: [string, string, string, string, string, string, string, string];
+  colors?: SphereVisualizerColors;
   speed?: number;
   scale?: number;
   goBlack?: boolean;
+  randomSeed?: number;
 };
 
 export const SphereVisualizer = ({
@@ -41,10 +53,11 @@ export const SphereVisualizer = ({
   scale = 1,
   colors = ["#000", "#000", "#000", "#000", "#000", "#000", "#000", "#000"],
   speed = 1,
+  randomSeed = 42,
 }: SphereVisualizerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const p5Instance = useRef<p5 | null>(null);
-  const propsRef = useRef({ colors, speed });
+  const propsRef = useRef({ colors, speed, randomSeed });
   const previousColorsRef = useRef(colors);
   const transitionRef = useRef<{
     startTime: number;
@@ -57,6 +70,7 @@ export const SphereVisualizer = ({
   // Update props ref when props change (without recreating sketch)
   useEffect(() => {
     propsRef.current.speed = speed;
+    propsRef.current.randomSeed = randomSeed;
 
     // Store previous colors before starting transition
     const previousColors = previousColorsRef.current;
@@ -104,7 +118,7 @@ export const SphereVisualizer = ({
         cancelAnimationFrame(transitionRef.current.animationId);
       }
     };
-  }, [colors, speed]);
+  }, [colors, speed, randomSeed]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -123,16 +137,13 @@ export const SphereVisualizer = ({
       };
 
       p.draw = () => {
-        const { colors, speed } = propsRef.current;
+        const { colors, speed, randomSeed } = propsRef.current;
 
         // Accumulate time based on current speed (instead of using frameCount)
         accumulatedTime += 0.015 * speed;
 
         // Set background
         p.clear();
-
-        // Enable mouse drag for debugging
-        p.orbitControl();
 
         // Store sphere positions and properties for visualization
         const sphereData: {
@@ -155,8 +166,8 @@ export const SphereVisualizer = ({
           const freqY = 1.0 + index * 0.12;
 
           // Create randomized initial phase offsets (consistent per sphere)
-          const randomSeedX = Math.sin(index * 12.345) * 1000; // Pseudo-random seed for X
-          const randomSeedY = Math.sin(index * 67.89) * 1000; // Pseudo-random seed for Y
+          const randomSeedX = Math.sin(index * (randomSeed * 0.12345)) * 1000; // Pseudo-random seed for X
+          const randomSeedY = Math.sin(index * (randomSeed * 0.6789)) * 1000; // Pseudo-random seed for Y
           const randomPhaseX =
             (randomSeedX - Math.floor(randomSeedX)) * p.PI * 2; // Random 0-2π
           const randomPhaseY =
