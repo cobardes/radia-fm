@@ -1,10 +1,24 @@
 import { RadioPlayerContext } from "@/contexts/RadioPlayerContext";
+import { useWakeLock } from "@/hooks/useWakeLock";
 import { useContext } from "react";
 import RadioPlayerSegmentItem from "./RadioPlayerSegmentItem";
 import RadioPlayerSongItem from "./RadioPlayerSongItem";
 
 function RadioPlayer() {
-  const { queue, autoplayBlocked } = useContext(RadioPlayerContext);
+  const { queue, autoplayBlocked, paused, currentItem } =
+    useContext(RadioPlayerContext);
+
+  // Calculate when wake lock should be active
+  const shouldKeepScreenAwake = Boolean(
+    !paused && // Music is playing
+      currentItem
+  );
+
+  // Use wake lock hook to prevent screen from dimming during playback
+  useWakeLock({
+    enabled: shouldKeepScreenAwake,
+    reacquireOnVisibilityChange: true,
+  });
 
   if (autoplayBlocked) {
     return null;
