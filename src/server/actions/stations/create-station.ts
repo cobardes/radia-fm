@@ -59,6 +59,10 @@ const _createStation = async (
   (async () => {
     const greetingSegmentId = randomUUID().slice(0, 8);
 
+    stations.doc(stationId).update({
+      statusMessage: "Creating station",
+    });
+
     console.log(chalk.yellow("Researching initial song..."));
 
     const initialSongInfo = await groundedFlashModel.invoke(
@@ -71,6 +75,11 @@ const _createStation = async (
     const initialSongInfoText = getMessageContentText(initialSongInfo.content);
 
     console.log(chalk.green(`Found initial song info: ${initialSongInfoText}`));
+
+    stations.doc(stationId).update({
+      statusMessage: "Doing some research",
+    });
+
     console.log(chalk.yellow("Generating greeting..."));
 
     const greeting = await greetingModel.invoke(
@@ -127,6 +136,7 @@ const _createStation = async (
       createdAt: new Date().toISOString(),
       creatorId,
       currentIndex: -1,
+      statusMessage: null,
       lastPlaybackUpdate: new Date().toISOString(),
     };
 

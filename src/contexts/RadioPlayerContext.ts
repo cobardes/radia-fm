@@ -30,6 +30,7 @@ interface RadioPlayerContextType {
   isCreator: boolean;
   playbackStarted: boolean;
   setPlaybackStarted: (started: boolean) => void;
+  statusMessage: string | null;
   // Audio manager functions
   audioManager: {
     visualizerData: {
@@ -88,6 +89,7 @@ export const RadioPlayerContext = createContext<RadioPlayerContextType>({
     stopLoudnessAnalysis: () => {},
     getLoudnessAnalysis: () => null,
   },
+  statusMessage: null,
 });
 
 async function canAutoplayAudio() {
@@ -288,6 +290,7 @@ export const useRadioPlayerContextValue = (
       audioManager,
       playbackStarted,
       setPlaybackStarted,
+      statusMessage: station?.statusMessage ?? null,
     }),
     [
       queue,
@@ -306,6 +309,7 @@ export const useRadioPlayerContextValue = (
       audioManager,
       playbackStarted,
       setPlaybackStarted,
+      station?.statusMessage,
     ]
   );
 };

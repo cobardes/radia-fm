@@ -15,6 +15,7 @@ export interface Station {
   creatorId: string;
   currentIndex: number;
   lastPlaybackUpdate: string;
+  statusMessage?: string;
 }
 
 export type StationPlaylist = StationPlaylistItem[];
