@@ -106,7 +106,7 @@ export const extractDominantColors = (
           const brightness = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
           // Skip colors that are too dark (brightness < 0.2)
-          if (brightness < 0.3 || brightness > 0.8) continue;
+          if (brightness < 0.25 || brightness > 0.85) continue;
 
           // Calculate vibrancy and filter out low-vibrancy colors early
           const vibrancy = calculateVibrancy(r, g, b);
