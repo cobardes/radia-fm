@@ -4,6 +4,7 @@ import { Geist_Mono, Roboto_Flex } from "next/font/google";
 import "./globals.css";
 
 import "material-symbols";
+import Link from "next/link";
 
 const robotoFlex = Roboto_Flex({
   variable: "--font-roboto-flex",
@@ -33,7 +34,21 @@ export default function RootLayout({
       <body
         className={`${robotoFlex.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <div className="w-screen h-screen">
+            <div className="fixed left-0 top-0 p-3.5 px-4.5 z-40">
+              <Link href="/" className="font-mono font-semibold tracking-tight">
+                <span>
+                  rad(ia){" "}
+                  <span className="text-xs text-black/60 font-normal">
+                    experimental
+                  </span>
+                </span>
+              </Link>
+            </div>
+            {children}
+          </div>
+        </QueryProvider>
       </body>
     </html>
   );

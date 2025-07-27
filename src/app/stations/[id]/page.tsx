@@ -17,25 +17,27 @@ export default function StationPage() {
   const contextValue = useRadioPlayerContextValue(realtimeStation);
 
   if (realtimeStation.loading) {
-    return <div>Loading...</div>;
+    return null;
   }
 
   if (!realtimeStation.station) {
-    return <div>Station not found</div>;
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-sm text-black/60 animate-pulse">
+          Station not found
+        </div>
+      </div>
+    );
   }
 
   return (
     <RadioPlayerContext.Provider value={contextValue}>
-      <StationPageContent />
+      <>
+        <NowPlaying />
+        <div className="hidden">
+          <RadioPlayer />
+        </div>
+      </>
     </RadioPlayerContext.Provider>
-  );
-}
-
-function StationPageContent() {
-  return (
-    <div className="flex flex-col gap-4">
-      <NowPlaying />
-      <RadioPlayer />
-    </div>
   );
 }

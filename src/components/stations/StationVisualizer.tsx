@@ -7,7 +7,7 @@ import {
   SphereVisualizerColors,
 } from "../visualizers/SphereVisualizer";
 
-const MIN_SCALE = 0; // Minimum scale when audio is quiet
+const MIN_SCALE = 0.4; // Minimum scale when audio is quiet
 const MAX_SCALE = 1.6; // Maximum scale when audio is loud
 const SMOOTHING_FACTOR = 1; // How quickly scale responds to changes (0-1, lower = smoother)
 const DEFAULT_FREQUENCY = 0; // Fallback frequency when no audio data

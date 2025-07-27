@@ -2,7 +2,6 @@
 
 import { useRadioPlayer } from "@/contexts/RadioPlayerContext";
 import { StationQueueItem } from "@/types/station";
-import Link from "next/link";
 import PlayerControls from "./PlayerControls";
 import { StationVisualizer } from "./StationVisualizer";
 
@@ -28,17 +27,8 @@ export default function NowPlaying() {
     !creatingStation && !readyToPlay && !autoplayBlocked && !currentItem;
 
   return (
-    <div className="w-screen h-screen">
-      <div className="absolute left-0 top-0 p-3.5 px-4.5">
-        <Link href="/" className="font-mono font-semibold tracking-tight">
-          <span>
-            rad(ia){" "}
-            <span className="text-xs text-black/60 font-normal">
-              experimental
-            </span>
-          </span>
-        </Link>
-      </div>
+    <div className="w-full h-full">
+      <StationVisualizer />
       <div className="absolute inset-0 top-auto flex items-end justify-between p-6 gap-3">
         <div>
           {currentItem && <PlaybackItemInfo item={currentItem} />}
@@ -54,7 +44,6 @@ export default function NowPlaying() {
         </div>
         <PlayerControls />
       </div>
-      <StationVisualizer />
     </div>
   );
 }
