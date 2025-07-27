@@ -41,10 +41,10 @@ const Voices: Record<StationLanguage, VoiceSettings> = {
       "Speak in a very fast and casual manner, like if you were talking to a friend.",
   },
   "Chilean Spanish": {
-    voiceName: "Iapetus",
-    temperature: 1.3,
+    voiceName: "Orus",
+    temperature: 1.2,
     instructions:
-      "Speak in a very fast and casual manner, like if you were talking to a friend. You have a very thick Chilean accent.",
+      "Estás conversando y hablando rápido. Di lo siguiente en tono casual, agradable y con acento chileno:",
   },
 };
 
@@ -71,7 +71,7 @@ export async function generateSpeechBuffer(
     },
   };
 
-  const model = "gemini-2.5-flash-preview-tts";
+  const model = "gemini-2.5-pro-preview-tts";
   const contents = [
     {
       role: "user" as const,
