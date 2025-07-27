@@ -13,7 +13,7 @@ interface RadioPlayerSegmentItemProps {
 
 export const SEGMENT_ENDING_OFFSET_SECONDS = 1.5;
 
-const SEGMENT_TARGET_VOLUME = 0.5;
+const SEGMENT_TARGET_VOLUME = 0.7;
 const BACKGROUND_TARGET_VOLUME = 0.05;
 const BACKGROUND_FADE_IN_DURATION_MS = 2000;
 const BACKGROUND_FADE_OUT_DURATION_MS = 3000;
@@ -28,7 +28,6 @@ function RadioPlayerSegmentItem({ item, index }: RadioPlayerSegmentItemProps) {
     markItemAsLoaded,
     paused,
     audioManager,
-    playbackStarted,
     setPlaybackStarted,
   } = useContext(RadioPlayerContext);
   const finished = useRef(false);
