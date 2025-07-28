@@ -31,6 +31,10 @@ export async function searchYouTube(query: string): Promise<Song[]> {
 }
 
 export async function checkPlayability(videoId: string) {
+  return true;
+
+  // Forget this, it doesn't work on digitalocean
+
   const video = await innertube.getInfo(videoId);
 
   if (video.playability_status?.status === "LOGIN_REQUIRED") {
