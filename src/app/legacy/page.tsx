@@ -37,7 +37,7 @@ export default function Home() {
       setResults([]); // Clear search results
 
       createStationMutation.mutate(
-        { seedSong: song, language: selectedLanguage },
+        { type: "song", seedSong: song, language: selectedLanguage },
         {
           onSuccess: (stationData) => {
             // Redirect to the station page
