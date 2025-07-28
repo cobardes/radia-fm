@@ -27,7 +27,7 @@ export async function GET(
       console.log(`Downloading audio for video ID: ${id}`);
 
       // Download audio as MP3 using yt-dlp
-      const command = `yt-dlp -f ba -x --audio-format mp3 --audio-quality 192K -o "${outputPath}" "https://www.youtube.com/watch?v=${id}"`;
+      const command = `yt-dlp --cookies yt-dlp-cookies.txt -f ba -x --audio-format mp3 --audio-quality 192K -o "${outputPath}" "https://www.youtube.com/watch?v=${id}"`;
       await execAsync(command);
 
       console.log(`Audio downloaded successfully: ${outputPath}`);
