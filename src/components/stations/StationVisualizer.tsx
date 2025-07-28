@@ -7,9 +7,9 @@ import {
   SphereVisualizerColors,
 } from "../visualizers/SphereVisualizer";
 
-const MIN_SCALE = 0.4; // Minimum scale when audio is quiet
-const MAX_SCALE = 1.6; // Maximum scale when audio is loud
-const SMOOTHING_FACTOR = 1; // How quickly scale responds to changes (0-1, lower = smoother)
+const MIN_SCALE = 0.5; // Minimum scale when audio is quiet
+const MAX_SCALE = 1.3; // Maximum scale when audio is loud
+const SMOOTHING_FACTOR = 0.8; // How quickly scale responds to changes (0-1, lower = smoother)
 const DEFAULT_FREQUENCY = 0; // Fallback frequency when no audio data
 
 const DEFAULT_COLORS: SphereVisualizerColors = [
@@ -36,7 +36,7 @@ export function StationVisualizer() {
 
   const [dominantColors, setDominantColors] =
     useState<SphereVisualizerColors>(DEFAULT_COLORS);
-  const [smoothedScale, setSmoothedScale] = useState<number>(0.7);
+  const [smoothedScale, setSmoothedScale] = useState<number>(0.5);
 
   const speed =
     (audioManager.visualizerData?.averageFrequency ?? 0) / 255 + 0.2;
@@ -52,9 +52,9 @@ export function StationVisualizer() {
   // Smooth the scale based on audio intensity
   useEffect(() => {
     // Don't update scale when paused - freeze it at current value
-    if (paused || !playbackStarted) {
-      return;
-    }
+    // if (paused || !playbackStarted) {
+    //   return;
+    // }
 
     const currentFrequency =
       (audioManager.visualizerData?.averageFrequency ?? DEFAULT_FREQUENCY) /
@@ -92,7 +92,7 @@ export function StationVisualizer() {
         <SphereVisualizer
           colors={dominantColors}
           speed={speed}
-          scale={smoothedScale}
+          scale={Math.pow(smoothedScale, 2)}
           goBlack={goBlack}
         />
         <div
@@ -105,7 +105,7 @@ export function StationVisualizer() {
           <SphereVisualizer
             colors={dominantColors}
             speed={speed}
-            scale={Math.max(smoothedScale, 0.5)}
+            scale={smoothedScale}
             goBlack={goBlack}
           />
         </div>

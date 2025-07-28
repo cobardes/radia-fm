@@ -16,6 +16,7 @@ export interface Station {
   currentIndex: number;
   lastPlaybackUpdate: string;
   statusMessage?: string;
+  guidelines?: string;
 }
 
 export type StationPlaylist = StationPlaylistItem[];

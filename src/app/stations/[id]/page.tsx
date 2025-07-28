@@ -17,7 +17,11 @@ export default function StationPage() {
   const contextValue = useRadioPlayerContextValue(realtimeStation);
 
   if (realtimeStation.loading) {
-    return null;
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="w-[37.5px] h-[37.5px] rounded-full bg-black" />
+      </div>
+    );
   }
 
   if (!realtimeStation.station) {
@@ -34,9 +38,7 @@ export default function StationPage() {
     <RadioPlayerContext.Provider value={contextValue}>
       <>
         <NowPlaying />
-        <div className="hidden">
-          <RadioPlayer />
-        </div>
+        <RadioPlayer />
       </>
     </RadioPlayerContext.Provider>
   );

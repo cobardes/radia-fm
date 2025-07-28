@@ -6,10 +6,9 @@ import { getAuth } from "firebase-admin/auth";
 import { QueryDocumentSnapshot } from "firebase-admin/firestore";
 import { NextRequest, NextResponse } from "next/server";
 
-export interface CreateStationRequest {
-  seedSong: Song;
-  language: StationLanguage;
-}
+export type CreateStationRequest =
+  | { type: "song"; seedSong: Song; language: StationLanguage }
+  | { type: "query"; query: string; language: StationLanguage };
 
 export interface CreateStationSuccessResponse {
   stationId: string;
@@ -70,14 +69,30 @@ export async function POST(
 
     const body: CreateStationRequest = await request.json();
 
-    if (!body.seedSong || !body.seedSong.id) {
+    let stationId: string;
+
+    if (body.type === "song") {
+      if (!body.seedSong || !body.seedSong.id) {
+        return NextResponse.json(
+          { error: "Valid seedSong is required" } as BaseErrorResponse,
+          { status: 400 }
+        );
+      }
+      stationId = await createStation(body.seedSong, body.language, userId);
+    } else if (body.type === "query") {
+      if (!body.query || !body.query.trim()) {
+        return NextResponse.json(
+          { error: "Valid query is required" } as BaseErrorResponse,
+          { status: 400 }
+        );
+      }
+      stationId = await createStation(body.query.trim(), body.language, userId);
+    } else {
       return NextResponse.json(
-        { error: "Valid seedSong is required" } as BaseErrorResponse,
+        { error: "Invalid request type" } as BaseErrorResponse,
         { status: 400 }
       );
     }
-
-    const stationId = await createStation(body.seedSong, body.language, userId);
 
     return NextResponse.json({
       stationId,

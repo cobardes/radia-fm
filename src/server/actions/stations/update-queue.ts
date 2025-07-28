@@ -35,6 +35,10 @@ export const updateQueue = traceable(
       )
     );
 
+    await stations.doc(stationId).update({
+      isExtending: false,
+    });
+
     return true;
   },
   {

@@ -33,11 +33,11 @@ export default function NowPlaying() {
         <div>
           {currentItem && <PlaybackItemInfo item={currentItem} />}
           {queue.length === 0 ? (
-            <div className="text-sm text-black/60 animate-pulse">
+            <div className="text text-black/60 animate-pulse">
               {statusMessage}
             </div>
           ) : loadingMedia ? (
-            <div className="text-sm text-black/60 animate-pulse">
+            <div className="text text-black/60 animate-pulse">
               Loading tracks
             </div>
           ) : null}

@@ -8,7 +8,7 @@ import {
 import chalk from "chalk";
 import { traceable } from "langsmith/traceable";
 import similarity from "similarity";
-import { searchYouTube } from "../search-youtube";
+import { checkPlayability, searchYouTube } from "../search-youtube";
 
 // Helper function to clean title (remove parentheses except if contains "Remix")
 const cleanTitle = (title: string): string => {
@@ -60,34 +60,70 @@ const _attachYoutubeIds = async (
         // Sort by similarity (highest first)
         resultsWithSimilarity.sort((a, b) => b.similarity - a.similarity);
 
-        const bestMatch = resultsWithSimilarity[0];
+        // Try up to 3 results that pass the similarity threshold
+        const maxAttempts = 3;
+        let attemptCount = 0;
 
-        // Check if best match passes threshold
-        if (bestMatch.similarity >= SIMILARITY_THRESHOLD) {
-          const stationPlaylistItem: StationPlaylistItem = {
-            id: bestMatch.id,
-            title: bestMatch.title,
-            artist: bestMatch.artists.join(", "),
-            reason: item.reason,
-          };
-          console.log(
-            chalk.green(
-              `Found: ${bestMatch.title} by ${bestMatch.artists.join(
-                ", "
-              )} (similarity: ${bestMatch.similarity.toFixed(3)})`
-            )
-          );
-          return stationPlaylistItem;
-        } else {
-          console.log(
-            chalk.red(
-              `No good match found for: ${searchQuery} (best similarity: ${bestMatch.similarity.toFixed(
-                3
-              )})`
-            )
-          );
-          return null;
+        for (const candidate of resultsWithSimilarity) {
+          if (attemptCount >= maxAttempts) break;
+
+          // Check if candidate passes similarity threshold
+          if (candidate.similarity >= SIMILARITY_THRESHOLD) {
+            attemptCount++;
+
+            console.log(
+              chalk.blue(
+                `Checking playability for: ${
+                  candidate.title
+                } by ${candidate.artists.join(
+                  ", "
+                )} (similarity: ${candidate.similarity.toFixed(
+                  3
+                )}, attempt ${attemptCount})`
+              )
+            );
+
+            // Check playability
+            const isPlayable = await checkPlayability(candidate.id);
+
+            if (isPlayable) {
+              const stationPlaylistItem: StationPlaylistItem = {
+                id: candidate.id,
+                title: candidate.title,
+                artist: candidate.artists.join(", "),
+                reason: item.reason,
+              };
+              console.log(
+                chalk.green(
+                  `Found playable match: ${
+                    candidate.title
+                  } by ${candidate.artists.join(
+                    ", "
+                  )} (similarity: ${candidate.similarity.toFixed(3)})`
+                )
+              );
+              return stationPlaylistItem;
+            } else {
+              console.log(
+                chalk.yellow(
+                  `Not playable: ${candidate.title} by ${candidate.artists.join(
+                    ", "
+                  )}, trying next result...`
+                )
+              );
+            }
+          } else {
+            // No more results pass the similarity threshold
+            break;
+          }
         }
+
+        console.log(
+          chalk.red(
+            `No playable match found for: ${searchQuery} after ${attemptCount} attempts`
+          )
+        );
+        return null;
       } else {
         console.log(chalk.red(`No results found for: ${searchQuery}`));
         return null;

@@ -58,8 +58,8 @@ export const useAudioManager = ({
   // Master volume control - all audio sources flow through this
   const masterGainRef = useRef<GainNode | null>(null);
 
-  // ID for the requestAnimationFrame loop that updates visualizer data
-  const animationIdRef = useRef<number | null>(null);
+  // ID for the setInterval loop that updates visualizer data
+  const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
   // Map of all registered audio elements by ID (e.g., "song-123", "talk-456")
   const audioElementsRef = useRef<Map<string, AudioElementInfo>>(new Map());
@@ -375,8 +375,7 @@ export const useAudioManager = ({
       averageFrequency,
     });
 
-    // Schedule next update (creates smooth animation loop)
-    animationIdRef.current = requestAnimationFrame(updateVisualizerData);
+    // No need to schedule next update - setInterval handles this automatically
   }, [updateLoudnessAnalysis]);
 
   // VISUALIZATION CONTROL
@@ -387,7 +386,7 @@ export const useAudioManager = ({
       initializeAudioContext();
     }
 
-    if (!analyserRef.current || animationIdRef.current) return; // Already running or not ready
+    if (!analyserRef.current || intervalIdRef.current) return; // Already running or not ready
 
     // Resume audio context if suspended (required by browser autoplay policies)
     if (audioContextRef.current?.state === "suspended") {
@@ -402,15 +401,15 @@ export const useAudioManager = ({
         });
     }
 
-    // Start the animation loop
-    updateVisualizerData();
+    // Start the interval loop at 60fps (~16.67ms)
+    intervalIdRef.current = setInterval(updateVisualizerData, 1000 / 60);
   }, [updateVisualizerData, initializeAudioContext]);
 
   // Stops the visualization data extraction loop
   const stopVisualization = useCallback(() => {
-    if (animationIdRef.current) {
-      cancelAnimationFrame(animationIdRef.current); // Stop the animation loop
-      animationIdRef.current = null;
+    if (intervalIdRef.current) {
+      clearInterval(intervalIdRef.current); // Stop the interval loop
+      intervalIdRef.current = null;
     }
     setVisualizerData(null); // Clear visualization data
   }, []);

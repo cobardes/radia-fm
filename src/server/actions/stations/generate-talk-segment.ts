@@ -28,7 +28,12 @@ export const generateNextSegment = traceable(
 
     const station = await stations.doc(stationId).get();
 
-    const { playlist, queue, language } = station.data() as Station;
+    const {
+      playlist,
+      queue,
+      language,
+      guidelines = "",
+    } = station.data() as Station;
 
     // Find the last talk segment in the queue
     const lastTalkSegmentIndex = queue.findLastIndex(
@@ -80,6 +85,7 @@ export const generateNextSegment = traceable(
     console.log(chalk.cyan(`🤖 Generating talk segment using AI model...`));
     const nextSegment = await model.invoke(
       await generateTalkSegmentPromptTemplate.invoke({
+        guidelines,
         broadcastHistory,
         lastSongs,
         upcomingSongs: formatStationPlaylist(upcomingSongs),

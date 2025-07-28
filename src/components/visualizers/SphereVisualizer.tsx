@@ -4,7 +4,7 @@ import { mix } from "color2k";
 import p5 from "p5";
 import { useEffect, useRef, useState } from "react";
 
-const SIZE = 200;
+const SIZE = 150;
 
 // Animation constants
 const ANIMATION_CONFIG = {

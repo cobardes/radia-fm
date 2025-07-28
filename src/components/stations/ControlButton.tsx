@@ -13,7 +13,7 @@ export function ControlButton({
 }) {
   return (
     <button
-      className={`bg-white text-black py-2 px-4 cursor-pointer rounded-full uppercase font-mono font-semibold tracking-wide text-sm flex items-center gap-2 active:bg-black active:text-white shadow-neutral-400 ${
+      className={`bg-white text-black py-2 px-4 cursor-pointer rounded-full uppercase font-mono font-semibold tracking-wide text-sm flex items-center gap-2 active:bg-black active:text-white shadow-neutral-400 opacity-50 hover:opacity-100 transition-opacity duration-200 ${
         iconPosition === "left" ? "pl-2.5" : "pr-2.5"
       }`}
       onClick={onClick}
