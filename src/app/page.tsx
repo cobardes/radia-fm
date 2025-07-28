@@ -31,7 +31,7 @@ function LanguageButton({
 }) {
   return (
     <button
-      className={`bg-white text-black px-4 py-2 cursor-pointer font-mono uppercase font-medium tracking-tight text-sm rounded-full transition-opacity duration-150 ${
+      className={`bg-white text-black px-4 py-2 cursor-pointer font-mono uppercase font-medium tracking-tight text-sm first:rounded-l-full last:rounded-r-full transition-opacity duration-150 ${
         active ? "opacity-100" : "opacity-50"
       }`}
       onClick={onClick}
@@ -107,15 +107,20 @@ export default function Home() {
           }`}
         >
           <div className="flex justify-between items-center">
-            <div className="flex gap-3">
+            <div className="flex gap-0.5">
               <LanguageButton
                 active={selectedLanguage === "British English"}
-                label="🇬🇧 EN-GB"
+                label="🇬🇧 EN"
                 onClick={() => setSelectedLanguage("British English")}
               />
               <LanguageButton
+                active={selectedLanguage === "Neutral Spanish"}
+                label="🇪🇸 ES"
+                onClick={() => setSelectedLanguage("Neutral Spanish")}
+              />
+              <LanguageButton
                 active={selectedLanguage === "Chilean Spanish"}
-                label="🇨🇱 ES-CL"
+                label="🇨🇱 CL"
                 onClick={() => setSelectedLanguage("Chilean Spanish")}
               />
             </div>
