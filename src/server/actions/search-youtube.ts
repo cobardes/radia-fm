@@ -33,10 +33,7 @@ export async function searchYouTube(query: string): Promise<Song[]> {
 export async function checkPlayability(videoId: string) {
   const video = await innertube.getInfo(videoId);
 
-  if (
-    video.playability_status?.status === "UNPLAYABLE" ||
-    video.playability_status?.status === "LOGIN_REQUIRED"
-  ) {
+  if (video.playability_status?.status === "LOGIN_REQUIRED") {
     return false;
   }
 
