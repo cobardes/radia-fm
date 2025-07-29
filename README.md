@@ -31,9 +31,9 @@ npm run dev
 
 ### To-do
 
-[ ] In-station query box. Play something else but "merging" with your current guidelines
-[ ] Web Audio API playback control. No more of that `<audio>` tag chaos
-[ ] Using three.js for visualization, with native post processing instead of CSS filters
+- [ ] In-station query box. Play something else but "merging" with your current guidelines
+- [ ] Web Audio API playback control. No more of that `<audio>` tag chaos
+- [ ] Using three.js for visualization, with native post processing instead of CSS filters
 
 ### A real product
 
