@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## radia-fm
 
-## Getting Started
+## How it works
 
-First, run the development server:
+- When you input a query, it creates a station in your Firestore database
+- Then, it uses Gemini 2.5 Flash with search grounding to turn your query into "guidelines"
+- The guidelines are used to find songs (Gemini 2.5 Pro with grounding)
+- Songs are stored in your station's `playlist`
+- Then, "talk segments" are generated one by one using GPT-4.1
+- The generated texts are stored in a `speeches` collection
+- Finally, two endpoints (`/api/playback/mp3` and `/api/playback/segment`) stream songs and talk segments to the client
+- Voice generation is done on demand, using ElevenLabs and Gemini (for es-CL), when hitting the endpoint.
+- Audio files are cached in the filesystem and aggressive caching header are sent in the response.
 
-```bash
+## Requisites
+
+- A `firebase-service-account.json` file or equivalent
+- All the env vars in `.env.example` (Langsmith optional)
+- A RapidAPI key and a subscription to [YouTube to MP3](https://rapidapi.com/ezmp3/api/youtube-to-mp337)
+- Lots of money to waste on ElevenLabs
+
+## How to run
+
+Easy as pie:
+
+```
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## To-do
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+[] In-station query box. Play something else but "merging" with your current guidelines
+[] Web Audio API playback control. No more of that `<audio>` tag chaos
+[] Using three.js for visualization, with native post processing instead of CSS filters
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## A real product
 
-## Learn More
+Some ideas on how this could become an actual thing that people can visit, download and enjoy
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Port this to Apple MusicKit instead of using shady YouTube MP3s.** Probably the most important thing. It seems like Apple Music is the only service that would allow for the experience we're looking for, in a completely legal way that is also monetizable. (How tf is DailyTube compliant with YouTube's policies?)
+- Find a suitable alternative to ElevenLabs, which is just way too expensive for this to be used by a wider audience. Chatterbox seems promising but more research is needed
+- Build our own grounding system to stop depending on Google search. It feels like cheating, it is expensive, it has constraints. (It's crazy fast though). We could have an agent - or a network of agents, that scrape wikipedia, last.fm, musicboard, rate your music, music blogs, etc. to make good, informed, interesting (and maybe even subjective!) recommendations. Using SERPs shouldn't be out of the question IMO.
+- A "credits" system? Which is just basically tokens
+- Making a mobile app with Expo.
