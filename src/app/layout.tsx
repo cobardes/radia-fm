@@ -35,7 +35,7 @@ export default function RootLayout({
         className={`${robotoFlex.variable} ${geistMono.variable} antialiased`}
       >
         <QueryProvider>
-          <div className="w-dvh h-dvh">
+          <div className="w-dvw h-dvh">
             <div className="fixed left-0 top-0 p-3.5 px-4.5 z-40">
               <Link href="/" className="font-mono font-semibold tracking-tight">
                 <span>
