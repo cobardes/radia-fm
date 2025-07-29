@@ -76,7 +76,7 @@ export default function Home() {
   }, [inputValue, createStationMutation, router, selectedLanguage]);
 
   return (
-    <div className="w-screen h-screen flex flex-col justify-center items-center">
+    <div className="w-full h-full flex flex-col justify-center items-center">
       <div className="w-[450px] max-w-full relative px-6">
         <div className="flex w-full items-center justify-center">
           <input
