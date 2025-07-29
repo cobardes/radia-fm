@@ -7,7 +7,7 @@ import { traceable } from "langsmith/traceable";
 import { attachYoutubeIds } from "./attach-youtube-ids";
 
 const model = new ChatGoogleGenerativeAI({
-  model: "gemini-2.5-flash",
+  model: "gemini-2.5-pro",
 }).bindTools([{ googleSearch: {} }]);
 
 const structuredModel = new ChatGoogleGenerativeAI({
