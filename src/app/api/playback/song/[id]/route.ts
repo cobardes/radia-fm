@@ -6,6 +6,40 @@ import { promisify } from "util";
 
 const execAsync = promisify(exec);
 
+// Helper function to get content type based on file extension
+function getContentType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  switch (ext) {
+    case ".mp3":
+      return "audio/mpeg";
+    case ".m4a":
+      return "audio/mp4";
+    case ".webm":
+      return "audio/webm";
+    case ".ogg":
+      return "audio/ogg";
+    case ".opus":
+      return "audio/opus";
+    case ".aac":
+      return "audio/aac";
+    default:
+      return "audio/mpeg"; // fallback
+  }
+}
+
+// Helper function to find downloaded file with any audio extension
+function findDownloadedFile(outputDir: string, id: string): string | null {
+  const possibleExtensions = [".m4a", ".webm", ".mp3", ".ogg", ".opus", ".aac"];
+
+  for (const ext of possibleExtensions) {
+    const filePath = path.join(outputDir, `${id}${ext}`);
+    if (fs.existsSync(filePath)) {
+      return filePath;
+    }
+  }
+  return null;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -13,8 +47,8 @@ export async function GET(
   const id = (await params).id;
 
   // Define the output path
+  const cookiesPath = path.join(process.cwd(), "yt-dlp-cookies.txt");
   const outputDir = path.join(process.cwd(), "downloads");
-  const outputPath = path.join(outputDir, `${id}.mp3`);
 
   try {
     // Ensure the downloads directory exists
@@ -22,30 +56,41 @@ export async function GET(
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    // Check if file already exists
-    if (!fs.existsSync(outputPath)) {
+    // Check if file already exists with any audio extension
+    let outputPath = findDownloadedFile(outputDir, id);
+
+    if (!outputPath) {
       console.log(`Downloading audio for video ID: ${id}`);
 
-      // Download audio as MP3 using yt-dlp
-      const command = `yt-dlp --cookies yt-dlp-cookies.txt -f ba -x --audio-format mp3 --audio-quality 192K -o "${outputPath}" "https://www.youtube.com/watch?v=${id}"`;
+      // Download best available audio format without conversion
+      // Use %(ext)s to let yt-dlp determine the extension
+      const outputTemplate = path.join(outputDir, `${id}.%(ext)s`);
+      const command = `yt-dlp --cookies "${cookiesPath}" -f ba -o "${outputTemplate}" "https://www.youtube.com/watch?v=${id}"`;
       await execAsync(command);
 
-      console.log(`Audio downloaded successfully: ${outputPath}`);
+      // Find the downloaded file
+      outputPath = findDownloadedFile(outputDir, id);
+
+      if (outputPath) {
+        console.log(`Audio downloaded successfully: ${outputPath}`);
+      }
     } else {
       console.log(`Audio file already exists: ${outputPath}`);
     }
 
     // Check if file exists after download attempt
-    if (!fs.existsSync(outputPath)) {
+    if (!outputPath || !fs.existsSync(outputPath)) {
       return NextResponse.json(
         { error: "Audio file not found after download" },
         { status: 404 }
       );
     }
 
-    // Get file stats
+    // Get file stats and content type
     const stats = fs.statSync(outputPath);
     const fileSize = stats.size;
+    const contentType = getContentType(outputPath);
+    const fileName = path.basename(outputPath);
 
     // Check for range request
     const range = request.headers.get("range");
@@ -69,7 +114,7 @@ export async function GET(
           "Content-Range": `bytes ${start}-${end}/${fileSize}`,
           "Accept-Ranges": "bytes",
           "Content-Length": chunkSize.toString(),
-          "Content-Type": "audio/mpeg",
+          "Content-Type": contentType,
           "Cache-Control": "public, max-age=3600",
         },
       });
@@ -79,8 +124,8 @@ export async function GET(
 
       return new NextResponse(audioBuffer, {
         headers: {
-          "Content-Type": "audio/mpeg",
-          "Content-Disposition": `inline; filename="${id}.mp3"`,
+          "Content-Type": contentType,
+          "Content-Disposition": `inline; filename="${fileName}"`,
           "Content-Length": audioBuffer.length.toString(),
           "Accept-Ranges": "bytes",
           "Cache-Control": "public, max-age=3600",
