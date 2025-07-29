@@ -140,7 +140,7 @@ const _createStation = async (
           );
 
           const speechUrl = `/api/playback/segment/${greetingSegmentId}`;
-          const songUrl = `/api/playback/song/${firstSong.id}`;
+          const songUrl = `/api/playback/mp3/${firstSong.id}`;
 
           const greetingSegment: StationQueueTalkSegment = {
             id: greetingSegmentId,
@@ -250,7 +250,7 @@ const _createStation = async (
       console.log(chalk.green(`Saved greeting segment: ${greetingSegmentId}`));
 
       const speechUrl = `/api/playback/segment/${greetingSegmentId}`;
-      const songUrl = `/api/playback/song/${initialSong.id}`;
+      const songUrl = `/api/playback/mp3/${initialSong.id}`;
 
       const greetingSegment: StationQueueTalkSegment = {
         id: greetingSegmentId,

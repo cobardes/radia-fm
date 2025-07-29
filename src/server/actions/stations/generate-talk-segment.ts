@@ -131,7 +131,7 @@ export const generateNextSegment = traceable(
           title: song.title,
           artist: song.artist,
           reason: song.reason,
-          audioUrl: `/api/playback/song/${song.id}`,
+          audioUrl: `/api/playback/mp3/${song.id}`,
         };
         return newSong;
       }),
