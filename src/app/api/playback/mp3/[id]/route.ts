@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const youtubeId = params.id;
+    const youtubeId = (await params).id;
 
     if (!youtubeId) {
       return NextResponse.json(
