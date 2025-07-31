@@ -1,5 +1,5 @@
 [phases.setup]
-nixPkgs = ["nodejs-24", "ffmpeg-full", "yt-dlp", "python3", "gcc", "gnumake"]
+nixPkgs = ["nodejs_24", "ffmpeg-full", "yt-dlp", "python3", "gcc", "gnumake"]
 
 [phases.install]
 cmds = [
