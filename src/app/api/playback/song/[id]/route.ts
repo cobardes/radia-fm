@@ -66,7 +66,8 @@ export async function GET(
       // Download best available audio format without conversion
       // Use %(ext)s to let yt-dlp determine the extension
       const outputTemplate = path.join(outputDir, `${id}.%(ext)s`);
-      const command = `yt-dlp --cookies "${cookiesPath}" -f ba -o "${outputTemplate}" "https://www.youtube.com/watch?v=${id}"`;
+      const cookiesFlag = cookiesPath ? `--cookies "${cookiesPath}"` : "";
+      const command = `yt-dlp ${cookiesFlag} -f ba -o "${outputTemplate}" "https://www.youtube.com/watch?v=${id}"`;
       await execAsync(command);
 
       // Find the downloaded file

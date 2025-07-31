@@ -44,5 +44,6 @@ next-env.d.ts
 
 firebase-service-account.json
 
+# Cookie files (optional - can be used for backward compatibility)
 ytjs-cookies.txt
 yt-dlp-cookies.txt
