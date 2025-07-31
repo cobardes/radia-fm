@@ -64,3 +64,14 @@ export interface StationQueueTalkSegment {
 }
 
 export type StationQueueItem = StationQueueSong | StationQueueTalkSegment;
+
+export const guidelinesSchema = z.object({
+  guidelines: z.string(),
+  initialSong: z.object({
+    title: z.string(),
+    artist: z.string(),
+    reason: z.string(),
+  }),
+});
+
+export type Guidelines = z.infer<typeof guidelinesSchema>;

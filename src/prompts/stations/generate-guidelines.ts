@@ -24,46 +24,31 @@ ${information}
 
 Given a user query for a music playlist, generate a set of guidlines for AI models to follow when finding and selecting songs. To make playlists sonically consistent, you might indicate suggested genres. Always reflect the user's mood. If the user requests for specific songs or artists, they must be included in the playlist. If the user requests about an album, you must include and prioritize the songs from the album.
 
-**CRITICAL:** If the user's query is about a specific song, the playlist MUST start with that song.
+Then, select 1 song to begin the playlist according to the guidelines. Include the song's title, artist, and a summary about the song and why you selected it.
 
-**CRITICAL:** If the user asks for songs that are "top", "hot", or uses terms like "hits", "actuales", "current", "right now" etc. you MUST prioritize **recently released** songs, meaning within the last 3 months.
+**CRITICAL:** Always search the web to resolve this request.
 
-**NOTE:** Always search the web for context about the user's query.
-
-Respond only with the guidelines in plain text and nothing else.
+## Notes
+- If the user's query is about a specific song, the playlist MUST start with that song.
+- If the user's query is about a specific artist, the playlist MUST start with a song by that artist.
+- If the user asks for songs that are "top", "hot", or uses terms like "hits", "actuales", "current", "right now" etc. you MUST prioritize **recently released** songs, meaning within the last 3 months.
 
 ## Examples
 
 **Example query**
-"charli xcx discography"
+"charli xcx deep dive"
 
 **Example Response**
-In this scenario, you are doing a "deep dive". This means you are focusing on the discography and influences of Charli XCX. Aim for a 60/40 split between songs by Charli XCX and songs by other artists, interweaving them. Introduce deep cuts into the mix. Choose songs that were made by or are concretely related to Charli XCX in some way.
+\`\`\`
+## Guidelines
+In this scenario, you are doing a "deep dive". This means you are focusing on the discography and influences of Charli XCX. Aim for a 60/40 split between songs by Charli XCX and songs by other artists, interweaving them. Introduce deep cuts into the mix. Choose songs that were made by or are concretely related to Charli XCX in some way. REMEMBER to enforce the ratio of songs by Charli XCX to other artists.
 
-**Example query**
-"hits actuales del reggaeton chileno"
+## Initial song
 
-**Example Response**
-In this scenario, you are focusing on RECENTLY RELEASED (within the last 3 months) songs within the Chilean reggaeton genre, in July 2025. Prioritize songs with high streaming numbers, chart performance, and general recognition within Chile. Aim for a high concentration of the "most listened to" tracks in July 2025, always looking for RECENTLY RELEASED songs.
-
-**Example query**
-"interpol and fontaines dc"
-
-**Example Response**
-In this scenario, you are creating a playlist that specifically blends the sounds of Interpol and Fontaines D.C. The focus should be on their shared musical characteristics, such as post-punk revival influences, atmospheric tones, and energetic yet often melancholic moods. Aim for a balanced representation of both bands, interweaving their songs throughout the playlist to create a cohesive listening experience. You may include a smaller selection of tracks from other artists that sonically complement Interpol and Fontaines D.C., drawing from genres like post-punk, indie rock, and alternative rock, ensuring they align with the established mood and soundscape.
-
-**Example query**
-"roman holiday by nicki minaj and roman holiday by fontaines dc. what connects them?"
-
-**Example Response**
-In this scenario, you are creating a playlist that attempts to blend the dissimilar sounds of "Roman Holiday" by Nicki Minaj and "Roman Holiday" by Fontaines D.C. The focus should be on finding a common thread between the two songs, using creativity and a bit of humor. You must include both songs in the playlist. You may jump between genres and artists as long as you keep building a narrative that connects the two songs.
-
-**Example query**
-"alambre pua"
-
-**Example Response**
-In this scenario, you are creating a playlist based on the query "alambre pua". Given the current date and the significant recent release by Bad Bunny, the primary focus of the playlist should be on the song "ALAMBRE PúA" by Bad Bunny and tracks within the Latin trap and reggaeton genres that match its energetic and contemporary urban Latin sound. Maintain sonic consistency within this genre. You must begin the playlist with the song "ALAMBRE PúA" by Bad Bunny.
-
+Title: "Take My Hand"
+Artist: "Charli XCX"
+Kicking off this deep dive into the sonic world of Charli XCX is "Take My Hand," a standout deep cut from her 2013 debut album, *True Romance*. This track serves as a perfect entry point, not because it was a chart-topping single, but because it so perfectly encapsulates the essence of Charli's early artistic identity. Produced by the acclaimed Ariel Rechtshaid, who has also worked with the likes of Vampire Weekend and Haim, "Take My Hand" is a masterclass in moody synth-pop. The song is characterized by its grandiose, soaring production and a hazy, dreamlike atmosphere that feels both enchanting and escapist. It’s a sound that defined *True Romance*, an album that, while not a massive commercial success, was lauded by critics for its forward-thinking approach to pop music. Charli herself cited a diverse and somewhat unexpected range of influences for the album, including the 80s pop of Martika, the gothic rock of The Cure, and the bubblegum pop of Britney Spears. This eclectic mix is palpable in "Take My Hand," with its shimmering synths, melancholic undertones, and undeniable pop sensibility. The track showcases the early signs of Charli's experimental tendencies, her willingness to play with texture and mood within a pop framework. It's a song that invites the listener into a world of ethereal soundscapes and raw emotion, setting the stage for the genre-bending journey that is to come.
+\`\`\`
 
 ## User query
 
@@ -71,5 +56,5 @@ In this scenario, you are creating a playlist based on the query "alambre pua". 
 {query}
 </user_query>
 
-Respond with the guidelines in plain text and nothing else.
+Respond with the guidelines in the Markdown format from the examples.
 `);

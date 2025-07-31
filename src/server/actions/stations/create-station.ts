@@ -14,13 +14,16 @@ import {
 } from "@/prompts/stations/greeting";
 import { speeches, stations } from "@/server/db";
 import {
+  guidelinesSchema,
   Station,
   StationLanguage,
   StationQueueSong,
   StationQueueTalkSegment,
 } from "@/types/station";
 import { getMessageContentText } from "@/utils";
+import { getSongPlaybackUrl, getSpeechPlaybackUrl } from "@/utils/url-utils";
 import chalk from "chalk";
+import { attachYoutubeIds } from "./attach-youtube-ids";
 import { extendStationQueue } from "./extend-station-queue";
 import { updateQueue } from "./update-queue";
 
@@ -36,6 +39,10 @@ const greetingModel = new ChatGoogleGenerativeAI({
   model: "gemini-2.5-flash",
   temperature: 1.5,
 });
+
+const guidelinesModel = new ChatGoogleGenerativeAI({
+  model: "gemini-2.5-flash",
+}).withStructuredOutput(guidelinesSchema);
 
 const _createStation = async (
   seedInput: Song | string,
@@ -87,33 +94,43 @@ const _createStation = async (
           { runName: "generate-guidelines" }
         );
 
-        const guidelines = getMessageContentText(guidelinesResponse.content);
+        const guidelinesDraft = getMessageContentText(
+          guidelinesResponse.content
+        );
+
+        const { guidelines, initialSong } = await guidelinesModel.invoke(
+          guidelinesDraft,
+          {
+            runName: "parse-guidelines",
+          }
+        );
 
         console.log(chalk.green(`Generated guidelines: ${guidelines}`));
+        console.log(
+          chalk.green(
+            `Initial song: ${initialSong.title} - ${
+              initialSong.artist
+            }. Reason: ${initialSong.reason.slice(0, 100)}...`
+          )
+        );
 
         // Update station with guidelines
         await stations.doc(stationId).update({
           guidelines,
-          statusMessage: "Finding some tracks",
+          statusMessage: "Updating playlist",
         });
 
-        // Find initial batch of songs but DON'T update queue yet
-        await extendStationQueue(stationId, 5, true, true);
+        const initialPlaylist = await attachYoutubeIds([initialSong]);
 
-        // Get the updated station to access the first song
-        const updatedStationDoc = await stations.doc(stationId).get();
-        const updatedStation = updatedStationDoc.data() as Station;
+        await stations.doc(stationId).update({
+          playlist: initialPlaylist,
+          statusMessage: "Putting everything together",
+        });
 
-        if (updatedStation.playlist.length > 0) {
-          const firstSong = updatedStation.playlist[0];
-
-          stations.doc(stationId).update({
-            statusMessage: "Writing a greeting",
-          });
+        if (initialPlaylist.length > 0) {
+          const firstSong = initialPlaylist[0];
 
           console.log(chalk.yellow("Generating query greeting..."));
-
-          const greetingSegmentId = randomUUID().slice(0, 8);
 
           const greeting = await greetingModel.invoke(
             await queryGreetingPromptTemplate.invoke({
@@ -130,6 +147,7 @@ const _createStation = async (
             chalk.green(`Generated query greeting: ${greeting.content}`)
           );
 
+          const greetingSegmentId = randomUUID().slice(0, 8);
           await speeches.doc(greetingSegmentId).set({
             text: greeting.content.toString(),
             language,
@@ -139,14 +157,11 @@ const _createStation = async (
             chalk.green(`Saved query greeting segment: ${greetingSegmentId}`)
           );
 
-          const speechUrl = `/api/playback/segment/${greetingSegmentId}`;
-          const songUrl = `/api/playback/mp3/${firstSong.id}`;
-
           const greetingSegment: StationQueueTalkSegment = {
             id: greetingSegmentId,
             type: "talk",
             text: greeting.content.toString(),
-            audioUrl: speechUrl,
+            audioUrl: getSpeechPlaybackUrl(greetingSegmentId),
           };
 
           const firstSongSegment: StationQueueSong = {
@@ -155,7 +170,7 @@ const _createStation = async (
             title: firstSong.title,
             artist: firstSong.artist,
             reason: firstSong.reason,
-            audioUrl: songUrl,
+            audioUrl: getSongPlaybackUrl(firstSong.id),
           };
 
           // Set the greeting and first song as the initial queue items
@@ -170,10 +185,6 @@ const _createStation = async (
 
           console.log(chalk.green("Updated queue with songs"));
         }
-
-        await stations.doc(stationId).update({
-          statusMessage: undefined,
-        });
       } catch (error) {
         console.error("Error in query mode station creation:", error);
         await stations.doc(stationId).update({

@@ -40,6 +40,8 @@ That was "No I In Threesome" by Interpol, a track that, um, really, you know, di
 
 And, er, that was Black Sabbath’s “Hole in the Sky”—proper stormer to get us rolling, yeah? Interesting thing is, the track’s, well, not just about that infamous riff, but also, uh, stands as a product of some real chaos in their ranks when they recorded *Sabotage*. But, you know, while Sabbath were, uh, wrestling with lawyers in ‘75, just a few years earlier they’d already, um, set the blueprint for heavy metal with “War Pigs”. That’s what’s coming up for you next. Honestly, it’s a track that’s, y’know, more than just a song—almost like an anti-war anthem that sort of, um, shamed the powers-that-be using that dark, doomy Sabbath magic. So, we're about to summon the very origins of heavy metal right in your headphones. This is Black Sabbath’s "War Pigs".
 
+Y, eh, esa fue «La Voz de los '80» de Los Prisioneros, ¿cierto? En el fondo, el, eh, himno que los puso en el mapa en medio de un, um, ambiente bien tenso que se vivía en Chile. Pero bueno, ellos nunca se fueron a la segura; a continuación viene «Sexo», que —la verdad— es todavía más transgresora. Es del mismo álbum debut, pero esta canción se mete de lleno en, uh, la sátira, como tirándole un palo a cómo el sexo era, eh, comercializado y, bueno, vaciado de sentido por los medios en los 80. Ese espíritu rebelde, esa onda punk con toques new wave es simplemente, um, inconfundible acá, sobre todo porque la canción tuvo su buena dosis de polémica y, er, censura. No se muevan, que ya viene «Sexo»... y son Los Prisioneros en su faceta quizás más audaz, usando un ingenio afilado y ritmos punzantes para, uh, dejar su punto bien claro.
+
 ## Broadcast History
 
 {broadcastHistory}

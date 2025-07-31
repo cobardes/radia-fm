@@ -37,9 +37,7 @@ export default function NowPlaying() {
               {statusMessage}
             </div>
           ) : loadingMedia ? (
-            <div className="text text-black/60 animate-pulse">
-              Loading tracks
-            </div>
+            <div className="text text-black/60 animate-pulse">Buffering</div>
           ) : null}
         </div>
         <PlayerControls />
