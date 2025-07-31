@@ -13,8 +13,5 @@ cmds = ["npm run build"]
 NPM_CONFIG_PLATFORM = "linux"
 NPM_CONFIG_ARCH = "x64"
 
-[phases.build]
-cmds = ["npm run build"]
-
 [start]
 cmd = "npm start" 
