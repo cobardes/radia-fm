@@ -1,4 +1,4 @@
-import ffmpeg from "fluent-ffmpeg";
+import { spawn } from "child_process";
 import { promises as fs } from "fs";
 import { tmpdir } from "os";
 import { join } from "path";
@@ -14,31 +14,46 @@ export async function convertToMp3(audioBuffer: Buffer): Promise<Buffer> {
       // Write the audio buffer to a temporary file
       await fs.writeFile(inputFile, audioBuffer);
 
-      // Convert to MP3 using ffmpeg
-      ffmpeg(inputFile)
-        .audioCodec("libmp3lame")
-        .audioQuality(2) // High quality
-        .on("end", async () => {
-          try {
-            // Read the converted MP3 file
-            const mp3Buffer = await fs.readFile(outputFile);
+      // Convert to MP3 using direct ffmpeg call
+      const ffmpegProcess = spawn("ffmpeg", [
+        "-i",
+        inputFile, // Input file
+        "-acodec",
+        "libmp3lame", // Audio codec
+        "-aq",
+        "2", // Audio quality (high quality)
+        "-y", // Overwrite output file if it exists
+        outputFile, // Output file
+      ]);
 
-            // Clean up temporary files
-            await fs.unlink(inputFile).catch(() => {});
-            await fs.unlink(outputFile).catch(() => {});
-
-            resolve(mp3Buffer);
-          } catch (error) {
-            reject(error);
+      ffmpegProcess.on("close", async (code) => {
+        try {
+          if (code !== 0) {
+            throw new Error(`ffmpeg process exited with code ${code}`);
           }
-        })
-        .on("error", (error) => {
+
+          // Read the converted MP3 file
+          const mp3Buffer = await fs.readFile(outputFile);
+
+          // Clean up temporary files
+          await fs.unlink(inputFile).catch(() => {});
+          await fs.unlink(outputFile).catch(() => {});
+
+          resolve(mp3Buffer);
+        } catch (error) {
           // Clean up temporary files on error
-          fs.unlink(inputFile).catch(() => {});
-          fs.unlink(outputFile).catch(() => {});
+          await fs.unlink(inputFile).catch(() => {});
+          await fs.unlink(outputFile).catch(() => {});
           reject(error);
-        })
-        .save(outputFile);
+        }
+      });
+
+      ffmpegProcess.on("error", async (error) => {
+        // Clean up temporary files on error
+        await fs.unlink(inputFile).catch(() => {});
+        await fs.unlink(outputFile).catch(() => {});
+        reject(new Error(`Failed to start ffmpeg process: ${error.message}`));
+      });
     } catch (error) {
       reject(error);
     }
