@@ -1,10 +1,17 @@
 [phases.setup]
-nixPkgs = ["nodejs-18_x", "ffmpeg-full", "yt-dlp"]
+nixPkgs = ["nodejs-18_x", "ffmpeg-full", "yt-dlp", "python3", "gcc", "gnumake"]
 
 [phases.install]
 cmds = [
   "npm ci --omit=dev --omit=optional"
 ]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[variables]
+NPM_CONFIG_PLATFORM = "linux"
+NPM_CONFIG_ARCH = "x64"
 
 [phases.build]
 cmds = ["npm run build"]
