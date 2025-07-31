@@ -3,6 +3,9 @@ import fs from "fs";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 
+// Cache for ongoing download promises to prevent duplicate API calls
+const downloadPromises = new Map<string, Promise<string>>();
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -73,8 +76,21 @@ export async function GET(
       });
     }
 
-    // Get MP3 URL from the API
-    const mp3Url = await getYoutubeMp3Url(youtubeId);
+    // Get MP3 URL from the API - check for ongoing downloads first
+    let mp3UrlPromise = downloadPromises.get(youtubeId);
+
+    if (!mp3UrlPromise) {
+      // Start new download and cache the promise
+      mp3UrlPromise = getYoutubeMp3Url(youtubeId);
+      downloadPromises.set(youtubeId, mp3UrlPromise);
+
+      // Clean up promise when done (success or failure)
+      mp3UrlPromise.finally(() => {
+        downloadPromises.delete(youtubeId);
+      });
+    }
+
+    const mp3Url = await mp3UrlPromise;
 
     // Fetch the MP3 content from the external URL
     const mp3Response = await fetch(mp3Url, {
