@@ -46,6 +46,7 @@ export default function Home() {
   const [selectedLanguage, setSelectedLanguage] =
     useState<StationLanguage>("British English");
   const [creatingStation, setCreatingStation] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
 
   const router = useRouter();
   const createStationMutation = useCreateStationMutation();
@@ -65,7 +66,13 @@ export default function Home() {
         {
           onSuccess: (stationData) => {
             // Redirect to the station page
-            router.push(`/stations/${stationData.stationId}`);
+            router.push(
+              `/${
+                debugMode && process.env.NODE_ENV === "development"
+                  ? "debug"
+                  : "stations"
+              }/${stationData.stationId}`
+            );
           },
           onError: (error) => {
             console.error("Failed to create station:", error);
@@ -130,6 +137,15 @@ export default function Home() {
             >
               Tune in
             </button>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="debug-mode"
+              checked={debugMode}
+              onChange={() => setDebugMode(!debugMode)}
+            />
+            <label htmlFor="debug-mode">Debug mode</label>
           </div>
         </div>
       </div>
