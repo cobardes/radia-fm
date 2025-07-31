@@ -47,7 +47,8 @@ export async function GET(
   const id = (await params).id;
 
   // Define the output path
-  const cookiesPath = path.join(process.cwd(), "yt-dlp-cookies.txt");
+  const { COOKIE_PATHS } = await import("../../../../../utils/cookie-paths");
+  const cookiesPath = COOKIE_PATHS.YT_DLP();
   const outputDir = path.join(process.cwd(), "downloads");
 
   try {
