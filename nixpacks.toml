@@ -3,12 +3,12 @@ nixPkgs = ["nodejs-24_x", "ffmpeg-full", "yt-dlp", "python3", "gcc", "gnumake"]
 
 [phases.install]
 cmds = [
-  "npm ci --omit=dev --omit=optional"
+  "npm ci --omit=dev --omit=optional",
+  "npm install --no-save --platform=linuxmusl --arch=x64 lightningcss"
 ]
 
 [phases.build]
 cmds = [
-  "npm install --no-save --platform=linuxmusl --arch=x64 lightningcss",
   "npm run build"
 ]
 
