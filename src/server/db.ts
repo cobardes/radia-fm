@@ -1,4 +1,4 @@
-import { SessionMetadata, SessionQueue, Speech, TalkSegment } from "@/types";
+import { Speech } from "@/types";
 import { Station } from "@/types/station";
 import {
   DocumentData,
@@ -18,7 +18,3 @@ const dataPoint = <T extends DocumentData>(collectionPath: string) =>
 
 export const stations = dataPoint<Station>("stations");
 export const speeches = dataPoint<Speech>("speeches");
-
-export const sessions = dataPoint<SessionMetadata>("sessions");
-export const queues = dataPoint<SessionQueue>("sessionQueues");
-export const talkSegments = dataPoint<TalkSegment>("talkSegments");
