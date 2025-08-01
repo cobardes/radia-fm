@@ -1,10 +1,11 @@
+import AppHeader from "@/components/AppHeader";
+import I18nProvider from "@/components/I18nProvider";
 import QueryProvider from "@/components/QueryProvider";
 import type { Metadata } from "next";
 import { Geist_Mono, Roboto_Flex } from "next/font/google";
 import "./globals.css";
 
 import "material-symbols";
-import Link from "next/link";
 
 const robotoFlex = Roboto_Flex({
   variable: "--font-roboto-flex",
@@ -35,19 +36,12 @@ export default function RootLayout({
         className={`${robotoFlex.variable} ${geistMono.variable} antialiased`}
       >
         <QueryProvider>
-          <div className="w-dvw h-dvh">
-            <div className="fixed left-0 top-0 p-3.5 px-4.5 z-40">
-              <Link href="/" className="font-mono font-semibold tracking-tight">
-                <span>
-                  rad(ia){" "}
-                  <span className="text-xs text-black/60 font-normal">
-                    experimental
-                  </span>
-                </span>
-              </Link>
+          <I18nProvider>
+            <div className="w-dvw h-dvh">
+              <AppHeader />
+              {children}
             </div>
-            {children}
-          </div>
+          </I18nProvider>
         </QueryProvider>
       </body>
     </html>

@@ -1,57 +1,38 @@
 "use client";
 
+import LanguageSelector from "@/components/LanguageSelector";
 import { useCreateStationMutation } from "@/hooks/mutations/useCreateStation";
 import { useAnimatedPlaceholder } from "@/hooks/useAnimatedPlaceholder";
 import { StationLanguage } from "@/types/station";
+import { detectBrowserLanguage } from "@/utils/language";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
-
-const placeholders = [
-  "super depressive 90s grunge",
-  "top chilean reggaeton right now",
-  "produced by ludwig göransson",
-  "top 100 songs of 2025",
-  "a song about love",
-  "dreamy shoegaze with reverb",
-  "melodic techno for late nights",
-  "british punk from the 80s",
-  "songs in movies by sofia coppola",
-  "indie sleaze",
-  "songs about the ocean",
-];
-
-function LanguageButton({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      className={`bg-white text-black px-4 py-2 cursor-pointer font-mono uppercase font-medium tracking-tight text-sm first:rounded-l-full last:rounded-r-full transition-opacity duration-150 ${
-        active ? "opacity-100" : "opacity-50"
-      }`}
-      onClick={onClick}
-    >
-      {label}
-    </button>
-  );
-}
+import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
   const [inputValue, setInputValue] = useState("");
-  const [selectedLanguage, setSelectedLanguage] =
-    useState<StationLanguage>("en-GB");
   const [creatingStation, setCreatingStation] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
 
   const router = useRouter();
   const createStationMutation = useCreateStationMutation();
+  const { t, i18n } = useTranslation();
 
-  const animatedPlaceholder = useAnimatedPlaceholder(placeholders);
+  // Get animated placeholder (now handles localization internally)
+  const animatedPlaceholder = useAnimatedPlaceholder();
+
+  // Set initial language based on browser detection
+  useEffect(() => {
+    const detectedLanguage = detectBrowserLanguage();
+    // Map the old language codes to new i18n codes
+    const languageMap: Record<StationLanguage, string> = {
+      "en-GB": "en",
+      "es-ES": "es",
+      "es-CL": "es",
+    };
+    const i18nLanguage = languageMap[detectedLanguage] || "en";
+    i18n.changeLanguage(i18nLanguage);
+  }, [i18n]);
 
   const handlePromptMode = useCallback(async () => {
     if (!inputValue.trim()) return;
@@ -60,9 +41,16 @@ export default function Home() {
 
     setCreatingStation(true);
 
+    // Map i18n language back to StationLanguage for the API
+    const apiLanguageMap: Record<string, StationLanguage> = {
+      en: "en-GB",
+      es: "es-ES",
+    };
+    const apiLanguage = apiLanguageMap[i18n.language] || "en-GB";
+
     setTimeout(() => {
       createStationMutation.mutate(
-        { type: "query", query, language: selectedLanguage },
+        { type: "query", query, language: apiLanguage },
         {
           onSuccess: (stationData) => {
             // Redirect to the station page
@@ -80,7 +68,7 @@ export default function Home() {
         }
       );
     }, 500);
-  }, [inputValue, createStationMutation, router, selectedLanguage]);
+  }, [inputValue, createStationMutation, router, i18n.language, debugMode]);
 
   return (
     <div className="w-full h-full flex flex-col justify-center items-center">
@@ -114,28 +102,12 @@ export default function Home() {
           }`}
         >
           <div className="flex justify-between items-center">
-            <div className="flex gap-0.5">
-              <LanguageButton
-                active={selectedLanguage === "en-GB"}
-                label="🇬🇧 EN"
-                onClick={() => setSelectedLanguage("en-GB")}
-              />
-              <LanguageButton
-                active={selectedLanguage === "es-ES"}
-                label="🇪🇸 ES"
-                onClick={() => setSelectedLanguage("es-ES")}
-              />
-              <LanguageButton
-                active={selectedLanguage === "es-CL"}
-                label="🇨🇱 CL"
-                onClick={() => setSelectedLanguage("es-CL")}
-              />
-            </div>
+            <LanguageSelector />
             <button
               className="bg-black text-white px-6 py-2 cursor-pointer font-mono uppercase font-medium tracking-tight text-sm rounded-full transition-opacity duration-150 flex items-center gap-2"
               onClick={handlePromptMode}
             >
-              Tune in
+              {t("tuneIn")}
             </button>
           </div>
           <div className="flex items-center gap-2">
@@ -145,7 +117,7 @@ export default function Home() {
               checked={debugMode}
               onChange={() => setDebugMode(!debugMode)}
             />
-            <label htmlFor="debug-mode">Debug mode</label>
+            <label htmlFor="debug-mode">{t("debugMode")}</label>
           </div>
         </div>
       </div>

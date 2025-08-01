@@ -1,10 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 // Timing configuration constants
 const TYPING_DELAY = 70; // ms between characters when typing
 const PAUSE_AFTER_TYPING = 2000; // ms pause after completing typing
 const REMOVING_DELAY = 30; // ms between characters when removing (faster)
 const PAUSE_BETWEEN_PLACEHOLDERS = 500; // ms pause before starting next placeholder
+
+// Fallback placeholders if translation fails
+const FALLBACK_PLACEHOLDERS = [
+  "super depressive 90s grunge",
+  "top chilean reggaeton right now",
+  "produced by ludwig göransson",
+  "top 100 songs of 2025",
+  "a song about love",
+  "dreamy shoegaze with reverb",
+  "melodic techno for late nights",
+  "british punk from the 80s",
+  "songs in movies by sofia coppola",
+  "indie sleaze",
+  "songs about the ocean",
+];
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -16,14 +32,37 @@ function shuffleArray<T>(array: T[]): T[] {
   return shuffled;
 }
 
-export function useAnimatedPlaceholder(placeholders: string[]) {
+export function useAnimatedPlaceholder() {
   const [currentPlaceholder, setCurrentPlaceholder] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(true);
   const [charIndex, setCharIndex] = useState(0);
 
-  // Shuffle the array once when the hook initializes
-  const shuffledPlaceholders = useMemo(() => shuffleArray(placeholders), []);
+  const { t, i18n } = useTranslation();
+
+  // Get localized placeholders
+  const placeholders = useMemo(() => {
+    try {
+      const translated = t("placeholders", { returnObjects: true });
+      return Array.isArray(translated) ? translated : FALLBACK_PLACEHOLDERS;
+    } catch {
+      return FALLBACK_PLACEHOLDERS;
+    }
+  }, [t, i18n.language]);
+
+  // Shuffle the array when placeholders change
+  const shuffledPlaceholders = useMemo(
+    () => shuffleArray(placeholders),
+    [placeholders]
+  );
+
+  // Reset animation state when placeholders change
+  useEffect(() => {
+    setCurrentIndex(0);
+    setIsTyping(true);
+    setCharIndex(0);
+    setCurrentPlaceholder("");
+  }, [placeholders]);
 
   useEffect(() => {
     if (shuffledPlaceholders.length === 0) return;

@@ -9,6 +9,7 @@ import { getLanguageName } from "@/utils/language";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ScaleLoader from "react-spinners/ScaleLoader";
 
 export default function Home() {
@@ -22,6 +23,7 @@ export default function Home() {
   const createStationMutation = useCreateStationMutation();
   const { data: recentStations, isLoading: isLoadingRecentStations } =
     useRecentStations();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!query) return;
@@ -60,7 +62,7 @@ export default function Home() {
       <div className="flex flex-col gap-8 w-full max-w-2xl mx-auto">
         <div className="flex flex-col gap-4">
           <h1 className="text-2xl font-semibold text-center">
-            Let&apos;s start by searching for a song:
+            {t("searchSongTitle")}
           </h1>
 
           {/* Language Selector */}
@@ -69,7 +71,7 @@ export default function Home() {
               htmlFor="language-select"
               className="text-sm font-medium text-gray-700"
             >
-              Select Language:
+              {t("selectLanguage")}
             </label>
             <select
               id="language-select"
@@ -87,7 +89,7 @@ export default function Home() {
 
           <input
             type="text"
-            placeholder="Type in and press ENTER"
+            placeholder={t("searchPlaceholder")}
             className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -104,9 +106,9 @@ export default function Home() {
             <ScaleLoader color="#000" />
             <div>
               {isSearching
-                ? "Searching..."
+                ? t("searching")
                 : isCreatingStation
-                ? "Creating station..."
+                ? t("creatingStation")
                 : ""}
             </div>
           </div>
@@ -125,12 +127,14 @@ export default function Home() {
 
         {/* Recent Stations */}
         <div className="flex flex-col gap-4 mt-8">
-          <h2 className="text-xl font-semibold text-center">Recent Stations</h2>
+          <h2 className="text-xl font-semibold text-center">
+            {t("recentStations")}
+          </h2>
 
           {isLoadingRecentStations ? (
             <div className="flex justify-center items-center gap-2">
               <ScaleLoader color="#000" height={20} />
-              <div>Loading recent stations...</div>
+              <div>{t("loadingRecentStations")}</div>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -149,7 +153,7 @@ export default function Home() {
                     >
                       <div className="text-sm text-gray-900">{artists}</div>
                       <div className="text-xs text-gray-500 mt-1">
-                        Created{" "}
+                        {t("created")}{" "}
                         {new Date(station.createdAt).toLocaleDateString()}
                       </div>
                     </Link>
@@ -157,7 +161,7 @@ export default function Home() {
                 })
               ) : (
                 <div className="text-center text-gray-500 py-4">
-                  No recent stations found
+                  {t("noRecentStations")}
                 </div>
               )}
             </div>

@@ -2,12 +2,15 @@
 
 import { useRadioPlayer } from "@/contexts/RadioPlayerContext";
 import { StationQueueItem } from "@/types/station";
+import { useTranslation } from "react-i18next";
 import PlayerControls from "./PlayerControls";
 import { StationVisualizer } from "./StationVisualizer";
 
 function PlaybackItemInfo({ item }: { item: StationQueueItem }) {
+  const { t } = useTranslation();
+
   if (item.type === "talk") {
-    return <div className="flex flex-col font-medium">DJ Commentary</div>;
+    return <div className="flex flex-col font-medium">{t("djCommentary")}</div>;
   }
 
   return (
@@ -21,6 +24,7 @@ function PlaybackItemInfo({ item }: { item: StationQueueItem }) {
 export default function NowPlaying() {
   const { currentItem, queue, autoplayBlocked, readyToPlay, statusMessage } =
     useRadioPlayer();
+  const { t } = useTranslation();
 
   const creatingStation = queue.length === 0;
   const loadingMedia =
@@ -37,7 +41,9 @@ export default function NowPlaying() {
               {statusMessage}
             </div>
           ) : loadingMedia ? (
-            <div className="text text-black/60 animate-pulse">Buffering</div>
+            <div className="text text-black/60 animate-pulse">
+              {t("buffering")}
+            </div>
           ) : null}
         </div>
         <PlayerControls />

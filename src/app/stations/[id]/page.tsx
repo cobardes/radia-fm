@@ -8,11 +8,13 @@ import {
 } from "@/contexts/RadioPlayerContext";
 import { useRealtimeStation } from "@/hooks/stations/useRealtimeStation";
 import { useParams } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 export default function StationPage() {
   const params = useParams();
   const stationId = params.id as string;
   const realtimeStation = useRealtimeStation(stationId);
+  const { t } = useTranslation();
 
   const contextValue = useRadioPlayerContextValue(realtimeStation);
 
@@ -28,7 +30,7 @@ export default function StationPage() {
     return (
       <div className="w-full h-full flex items-center justify-center">
         <div className="text-sm text-black/60 animate-pulse">
-          Station not found
+          {t("stationNotFound")}
         </div>
       </div>
     );

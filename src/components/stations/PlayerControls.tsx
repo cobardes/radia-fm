@@ -1,6 +1,7 @@
 "use client";
 
 import { useRadioPlayer } from "@/contexts/RadioPlayerContext";
+import { useTranslation } from "react-i18next";
 import { ControlButton } from "./ControlButton";
 
 export default function PlayerControls() {
@@ -13,6 +14,7 @@ export default function PlayerControls() {
     setAutoplayBlocked,
     queue,
   } = useRadioPlayer();
+  const { t } = useTranslation();
 
   if (queue.length === 0) {
     return <div />;
@@ -22,7 +24,7 @@ export default function PlayerControls() {
     return (
       <ControlButton
         icon="play_circle"
-        label="Play this station"
+        label={t("playThisStation")}
         onClick={() => {
           setAutoplayBlocked(false);
         }}
@@ -39,7 +41,7 @@ export default function PlayerControls() {
     <div className="flex gap-3">
       <ControlButton
         icon={paused ? "play_circle" : "pause_circle"}
-        label={paused ? "Resume" : "Pause"}
+        label={paused ? t("resume") : t("pause")}
         onClick={() => {
           if (paused) {
             setPaused(false);
@@ -50,7 +52,7 @@ export default function PlayerControls() {
       />
       <ControlButton
         icon="arrow_circle_right"
-        label="Skip"
+        label={t("skip")}
         iconPosition="right"
         onClick={playNext}
       />
