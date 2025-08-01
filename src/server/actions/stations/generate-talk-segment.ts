@@ -7,6 +7,7 @@ import {
   StationQueueTalkSegment,
 } from "@/types/station";
 import { formatStationPlaylist, formatStationQueue } from "@/utils";
+import { getLanguageName } from "@/utils/language";
 import { ChatOpenAI } from "@langchain/openai";
 import chalk from "chalk";
 import { randomUUID } from "crypto";
@@ -89,7 +90,7 @@ export const generateNextSegment = traceable(
         broadcastHistory,
         lastSongs,
         upcomingSongs: formatStationPlaylist(upcomingSongs),
-        language,
+        language: getLanguageName(language),
       }),
       { runName: "generate-talk-segment" }
     );

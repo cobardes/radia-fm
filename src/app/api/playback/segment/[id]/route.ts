@@ -41,12 +41,12 @@ export async function GET(
 
       // Get the streaming audio response from ElevenLabs
       // const audioStream =
-      //   segmentData.language === "Chilean Spanish"
+      //   segmentData.language === "es-CL"
       //     ? await generateSpeechGemini(segmentData.text, segmentData.language)
       //     : await generateSpeech(segmentData.text, segmentData.language);
 
       const audioStream =
-        segmentData.language === "Chilean Spanish"
+        segmentData.language === "es-CL"
           ? await generateSpeechGemini(segmentData.text, segmentData.language)
           : await generateSpeech(segmentData.text, segmentData.language);
 

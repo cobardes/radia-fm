@@ -28,19 +28,19 @@ interface VoiceSettings {
 }
 
 const Voices: Record<StationLanguage, VoiceSettings> = {
-  "British English": {
+  "en-GB": {
     voiceName: "Enceladus",
     temperature: 1.5,
     instructions:
       "You are having a conversation and speaking fast. Say this in an British accent:",
   },
-  "Neutral Spanish": {
+  "es-ES": {
     voiceName: "Despina",
     temperature: 1.3,
     instructions:
       "Speak in a very fast and casual manner, like if you were talking to a friend.",
   },
-  "Chilean Spanish": {
+  "es-CL": {
     voiceName: "Orus",
     temperature: 1.2,
     instructions:

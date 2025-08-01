@@ -5,6 +5,7 @@ import { useCreateStationMutation } from "@/hooks/mutations/useCreateStation";
 import { useRecentStations } from "@/hooks/useRecentStations";
 import { Song } from "@/types";
 import { StationLanguage } from "@/types/station";
+import { getLanguageName } from "@/utils/language";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -15,7 +16,7 @@ export default function Home() {
   const [results, setResults] = useState<Song[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedLanguage, setSelectedLanguage] =
-    useState<StationLanguage>("British English");
+    useState<StationLanguage>("en-GB");
 
   const router = useRouter();
   const createStationMutation = useCreateStationMutation();
@@ -78,9 +79,9 @@ export default function Home() {
               }
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              <option value="British English">British English</option>
-              <option value="Neutral Spanish">Neutral Spanish</option>
-              <option value="Chilean Spanish">Chilean Spanish</option>
+              <option value="en-GB">{getLanguageName("en-GB")}</option>
+              <option value="es-ES">{getLanguageName("es-ES")}</option>
+              <option value="es-CL">{getLanguageName("es-CL")}</option>
             </select>
           </div>
 

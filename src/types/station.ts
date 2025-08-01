@@ -1,9 +1,7 @@
+import { LocaleCode } from "@/utils/language";
 import { z } from "zod";
 
-export type StationLanguage =
-  | "British English"
-  | "Neutral Spanish"
-  | "Chilean Spanish";
+export type StationLanguage = LocaleCode;
 
 export interface Station {
   id: string;

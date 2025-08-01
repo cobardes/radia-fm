@@ -28,7 +28,7 @@ export interface BaseErrorResponse {
   error: string;
 }
 
-export type TalkSegmentLanguage = "British English" | "Neutral Spanish";
+export type TalkSegmentLanguage = StationLanguage;
 
 export interface SessionMetadata {
   playlist: SessionPlaylistItem[];

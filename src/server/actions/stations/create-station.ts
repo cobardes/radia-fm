@@ -21,6 +21,7 @@ import {
   StationQueueTalkSegment,
 } from "@/types/station";
 import { getMessageContentText } from "@/utils";
+import { getLanguageName } from "@/utils/language";
 import { getSongPlaybackUrl, getSpeechPlaybackUrl } from "@/utils/url-utils";
 import chalk from "chalk";
 import { attachYoutubeIds } from "./attach-youtube-ids";
@@ -138,7 +139,7 @@ const _createStation = async (
               songTitle: firstSong.title,
               artistName: firstSong.artist,
               songAbout: firstSong.reason,
-              language,
+              language: getLanguageName(language),
             }),
             { runName: "generate-query-greeting" }
           );
@@ -246,7 +247,7 @@ const _createStation = async (
         await greetingPromptTemplate.invoke({
           songTitle: initialSong.title,
           artistName: initialSong.artists[0],
-          language,
+          language: getLanguageName(language),
         }),
         { runName: "generate-greeting" }
       );

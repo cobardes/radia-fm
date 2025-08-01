@@ -44,7 +44,7 @@ function LanguageButton({
 export default function Home() {
   const [inputValue, setInputValue] = useState("");
   const [selectedLanguage, setSelectedLanguage] =
-    useState<StationLanguage>("British English");
+    useState<StationLanguage>("en-GB");
   const [creatingStation, setCreatingStation] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
 
@@ -116,19 +116,19 @@ export default function Home() {
           <div className="flex justify-between items-center">
             <div className="flex gap-0.5">
               <LanguageButton
-                active={selectedLanguage === "British English"}
+                active={selectedLanguage === "en-GB"}
                 label="🇬🇧 EN"
-                onClick={() => setSelectedLanguage("British English")}
+                onClick={() => setSelectedLanguage("en-GB")}
               />
               <LanguageButton
-                active={selectedLanguage === "Neutral Spanish"}
+                active={selectedLanguage === "es-ES"}
                 label="🇪🇸 ES"
-                onClick={() => setSelectedLanguage("Neutral Spanish")}
+                onClick={() => setSelectedLanguage("es-ES")}
               />
               <LanguageButton
-                active={selectedLanguage === "Chilean Spanish"}
+                active={selectedLanguage === "es-CL"}
                 label="🇨🇱 CL"
-                onClick={() => setSelectedLanguage("Chilean Spanish")}
+                onClick={() => setSelectedLanguage("es-CL")}
               />
             </div>
             <button
